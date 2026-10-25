@@ -29,8 +29,9 @@ Source inspection is not an end-to-end switch test. See [status](status.md).
 - `config.toml` selects `cli_auth_credentials_store`. Supported modes are `file`, direct `keyring`
   and `auto`; unknown / ephemeral modes fail closed. Custom desktop homes are rejected for switching.
 - Direct keyring service is `Codex Auth`; account key is `cli|` plus the first 16 hexadecimal characters
-  of SHA-256 of the canonical home path. Windows uses the upstream `keyring` crate layout, not
-  Antigravity's different credential target convention. New encrypted-secret backends are not verified.
+  of SHA-256 of the canonical home path. Use the upstream `keyring` crate on both operating systems:
+  macOS direct storage avoids the system command's short interactive-line limit; Windows uses Codex's
+  credential target convention instead of Antigravity's. New encrypted-secret backends are not verified.
 - Preserve the complete credential object, including ID, access and refresh tokens. Identity is the
   user ID from ID-token claims plus `tokens.account_id` for the workspace. Email is display data.
 - `GET https://chatgpt.com/backend-api/wham/usage` uses the access token and `ChatGPT-Account-Id`.

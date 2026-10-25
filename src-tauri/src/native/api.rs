@@ -203,16 +203,22 @@ pub async fn renew(
     if provider == Provider::Codex {
         credential["tokens"]["access_token"] = access.into();
         for key in ["refresh_token", "id_token"] {
-            if let Some(value) = data.get(key) {
-                credential["tokens"][key] = value.clone();
+            if let Some(value) = data[key].as_str().filter(|value| !value.is_empty()) {
+                credential["tokens"][key] = value.into();
             }
         }
         credential["last_refresh"] = Utc::now().to_rfc3339().into();
     } else {
         let oauth = &mut credential["claudeAiOauth"];
         oauth["accessToken"] = access.into();
-        if let Some(value) = data.get("refresh_token") {
-            oauth["refreshToken"] = value.clone();
+        if let Some(value) = data["refresh_token"]
+            .as_str()
+            .filter(|value| !value.is_empty())
+        {
+            oauth["refreshToken"] = value.into();
+        }
+        if let Some(scope) = data["scope"].as_str() {
+            oauth["scopes"] = serde_json::json!(scope.split_whitespace().collect::<Vec<_>>());
         }
         oauth["expiresAt"] =
             ((Utc::now().timestamp() + data["expires_in"].as_i64().unwrap_or(3600)) * 1000).into();

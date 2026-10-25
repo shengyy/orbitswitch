@@ -113,7 +113,7 @@ pub fn location(provider: Provider, root: PathBuf, isolated: bool) -> Result<Loc
 }
 impl Location {
     fn secret_get(&self, service: &str, account: &str) -> Result<Option<String>> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "macos"))]
         if self.provider == Provider::Codex {
             let entry = keyring::Entry::new(service, account)
                 .map_err(|_| Error::SecretStore("could not open Codex keyring entry".into()))?;
@@ -128,7 +128,7 @@ impl Location {
         secret_store::get(service, account)
     }
     fn secret_set(&self, service: &str, account: &str, value: &str) -> Result<()> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "macos"))]
         if self.provider == Provider::Codex {
             return keyring::Entry::new(service, account)
                 .and_then(|entry| entry.set_password(value))
@@ -137,7 +137,7 @@ impl Location {
         secret_store::set(service, account, value)
     }
     fn secret_delete(&self, service: &str, account: &str) -> Result<()> {
-        #[cfg(windows)]
+        #[cfg(any(windows, target_os = "macos"))]
         if self.provider == Provider::Codex {
             return match keyring::Entry::new(service, account)
                 .and_then(|entry| entry.delete_credential())
@@ -158,6 +158,7 @@ impl Location {
                 "ANTHROPIC_API_KEY",
                 "ANTHROPIC_AUTH_TOKEN",
                 "CLAUDE_CODE_OAUTH_TOKEN",
+                "CLAUDE_CODE_OAUTH_REFRESH_TOKEN",
                 "CLAUDE_CODE_USE_BEDROCK",
                 "CLAUDE_CODE_USE_VERTEX",
                 "CLAUDE_CODE_USE_FOUNDRY",

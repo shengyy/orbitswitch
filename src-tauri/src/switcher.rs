@@ -81,7 +81,7 @@ pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
     log::info!("switched Antigravity to another account");
 
     orbit.set_operation(step(SwitchStep::Launching));
-    let launched = process::launch(&install).await;
+    let launched = process::launch(&install).await.map_err(Error::after_switch);
     drop(sync);
     drop(guard);
     orbit.refresh_status();

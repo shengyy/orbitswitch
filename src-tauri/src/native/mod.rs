@@ -503,7 +503,7 @@ pub async fn switch(orbit: &Arc<Orbit>, provider: Provider, id: &str) -> Result<
         s.native_active.insert(provider, Some(id.into()));
     });
     orbit.set_operation(step(SwitchStep::Launching));
-    let result = process::launch(&install).await;
+    let result = process::launch(&install).await.map_err(Error::after_switch);
     drop(sync);
     drop(guard);
     orbit.refresh_status();

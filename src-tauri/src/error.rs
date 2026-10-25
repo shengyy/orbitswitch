@@ -38,8 +38,10 @@ pub enum Error {
     SecretStore(String),
     #[error("{0} client process(es) did not exit")]
     ProcessStuck(usize),
-    #[error("failed to launch Antigravity: {0}")]
+    #[error("failed to launch the desktop client: {0}")]
     Launch(String),
+    #[error("account switched, but the desktop client could not be opened: {0}")]
+    LaunchAfterSwitch(String),
     #[error("account not found")]
     AccountNotFound,
     #[error("another operation is in progress")]
@@ -77,6 +79,7 @@ impl Error {
             Self::SecretStore(_) => "secret_store",
             Self::ProcessStuck(_) => "process_stuck",
             Self::Launch(_) => "launch",
+            Self::LaunchAfterSwitch(_) => "launch_after_switch",
             Self::AccountNotFound => "account_not_found",
             Self::Busy => "busy",
             Self::Update(_) => "update",
@@ -85,6 +88,13 @@ impl Error {
             Self::VerifyFailed => "verify_failed",
             Self::Io(_) => "io",
             Self::Invalid(_) => "invalid",
+        }
+    }
+
+    pub fn after_switch(self) -> Self {
+        match self {
+            Self::Launch(message) => Self::LaunchAfterSwitch(message),
+            other => other,
         }
     }
 }
