@@ -169,7 +169,7 @@ pub async fn import(
     provider: Provider,
     expected_id: Option<&str>,
 ) -> Result<String> {
-    let guard = orbit.begin(Operation::Adding { provider })?;
+    let guard = orbit.begin(Operation::Importing { provider })?;
     let sync = orbit.sync_lock.lock().await;
     let location = live::locate(provider)?;
     location.check_switch_configuration(install::locate(provider).app.is_some())?;
@@ -277,7 +277,7 @@ pub async fn remove(orbit: &Arc<Orbit>, id: &str) -> Result<()> {
         .get(id)
         .ok_or(Error::AccountNotFound)?
         .provider;
-    let _guard = orbit.begin(Operation::Adding { provider })?;
+    let _guard = orbit.begin(Operation::Removing { provider })?;
     let _sync = orbit.sync_lock.lock().await;
     orbit.update(|s| s.registry.ignore_native(provider, id))?;
     storage::delete(id)?;

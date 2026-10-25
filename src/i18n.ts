@@ -2,6 +2,8 @@
 // dictionary with the same keys.
 
 const en = {
+  "progress.importing": "Verifying the current sign-in…",
+  "progress.removing": "Removing the saved account…",
   "bind.mismatch":
     "Desktop and CLI sign-ins are not confirmed to match. Link or switch an account to align them.",
   "tabs.label": "Account platform",
@@ -146,6 +148,8 @@ const en = {
 type Key = keyof typeof en;
 
 const zh: Record<Key, string> = {
+  "progress.importing": "正在核对当前登录…",
+  "progress.removing": "正在移除已保存的账号…",
   "bind.mismatch": "尚未确认桌面与 CLI 登录一致，请关联或切换账号。",
   "tabs.label": "账号平台",
   "tabs.scope": "{client} 订阅 · 剩余额度",

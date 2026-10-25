@@ -57,6 +57,8 @@ export type SwitchStep = "preparing" | "closing" | "writing" | "launching";
 export type Operation =
   | { kind: "idle" }
   | { kind: "adding"; provider: Provider }
+  | { kind: "importing"; provider: Provider }
+  | { kind: "removing"; provider: Provider }
   | { kind: "switching"; provider: Provider; targetId: string; step: SwitchStep }
   | { kind: "stopping"; provider: Provider }
   | { kind: "restarting"; provider: Provider }

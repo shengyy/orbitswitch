@@ -74,7 +74,7 @@ pub fn cancel_add(orbit: &Orbit) {
 
 /// Forgets the account. Antigravity stays signed in if it was the active one.
 pub async fn remove(orbit: &Arc<Orbit>, account_id: &str) -> Result<()> {
-    let _guard = orbit.begin(Operation::Adding {
+    let _guard = orbit.begin(Operation::Removing {
         provider: Provider::Antigravity,
     })?;
     let _sync = orbit.sync_lock.lock().await;

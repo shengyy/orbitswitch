@@ -84,6 +84,12 @@ pub enum Operation {
     Adding {
         provider: Provider,
     },
+    Importing {
+        provider: Provider,
+    },
+    Removing {
+        provider: Provider,
+    },
     #[serde(rename_all = "camelCase")]
     Switching {
         provider: Provider,

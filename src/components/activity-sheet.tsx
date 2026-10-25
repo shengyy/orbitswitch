@@ -81,7 +81,7 @@ export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
     <Sheet>
       <div className="activity-line">
         <span className="spinner" />
-        {t(operation.kind === "stopping" ? "progress.stopping" : "progress.restarting", vars)}
+        {t(`progress.${operation.kind}`, vars)}
       </div>
     </Sheet>
   );
