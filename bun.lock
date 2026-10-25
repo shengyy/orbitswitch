@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "agyorbit",
+      "name": "orbitswitch",
       "dependencies": {
         "@tauri-apps/api": "2.12.1",
         "@tauri-apps/plugin-clipboard-manager": "2.4.1",

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    agyorbit_lib::run()
+    orbitswitch_lib::run()
 }
