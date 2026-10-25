@@ -19,7 +19,7 @@ restores credentials on failure, and reopens the installed desktop app. Reopen C
 A failed refresh keeps the previous numbers with a stale label. Missing windows are never guessed.
 These are the coding clients' quotas, not Gemini or ChatGPT web-chat allowances.
 
-The multi-platform implementation is **unreleased**. Published 0.1.x packages are the original
+OrbitSwitch introduces the three-platform experience; older 0.1.x packages are the original
 Antigravity-only AgyOrbit. Codex and Claude identity/quota reads and Claude Desktop binding have been
 verified on macOS; real account switching and browser enrollment for these new adapters remain
 **not verified**. See the exact [verification scope](docs/status.md).

@@ -15,7 +15,7 @@ verified.
 | Installer | Universal `.dmg` (Apple silicon and Intel), ad-hoc signed | NSIS `-setup.exe`, unsigned |
 | Verified on a real installation | Yes: macOS 27, Antigravity 2.19.1 | **Not verified** ([#3](https://github.com/shengyy/orbitswitch/issues/3)) |
 
-## Multi-platform adapters (Unreleased)
+## Multi-platform adapters
 
 - Read-only probes on macOS passed against Antigravity 2.26.0, Codex CLI 0.164.0 / desktop
   26.1021.31345, and Claude Code 2.1.310 / Desktop 3.6556.2.
@@ -33,8 +33,8 @@ verified.
 - Native Windows behavior is **not verified**. Standard installer paths are detected; Store/MSIX,
   independently configured profiles and app-bound cookie encryption are unsupported. CI compilation
   does not establish real account switching on Windows.
-- The first multi-platform release is not published. Website downloads identify 0.1.x as the legacy
-  Antigravity-only build rather than presenting it as the new three-tab product.
+- Website downloads follow the latest published release and identify 0.1.x as the legacy
+  Antigravity-only build rather than presenting it as the three-tab product.
 
 ## Verified on macOS (0.1.2)
 

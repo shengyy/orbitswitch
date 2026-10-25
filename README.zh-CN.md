@@ -18,7 +18,7 @@
 然后打开已安装的桌面应用；CLI 会话需要手动重开。额度刷新失败会保留旧数据并标明过期，
 未返回的额度窗口不会猜测。这些是编程客户端额度，不代表 Gemini 或 ChatGPT 网页聊天额度。
 
-三平台实现**尚未发版**，已发布的 0.1.x 安装包仍是仅支持 Antigravity 的 AgyOrbit。
+OrbitSwitch 带来三平台体验；旧的 0.1.x 安装包仍是仅支持 Antigravity 的 AgyOrbit。
 Codex、Claude 的身份与额度读取，以及 Claude Desktop 关联身份验证已在 macOS 实机通过；
 新增适配器的真实账号切换、浏览器添加登录仍**未验证**。详见[验证范围](docs/status.md)。
 
