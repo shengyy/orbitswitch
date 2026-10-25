@@ -172,15 +172,15 @@ const PLATFORMS = {
         plan: { kind: "max", label: "MAX", title: "Claude Max" },
         groups: [
           {
-            label: "Sonnet",
-            models: "Claude Sonnet",
+            label: "Claude",
+            models: "Shared Claude coding pool",
             fiveHour: { remaining: 0.28, resetEn: "54m", resetZh: "54 分钟" },
             weekly: { remaining: 0.72, resetEn: "2d 18h", resetZh: "2 天 18 小时" },
           },
           {
             label: "Opus",
             models: "Claude Opus",
-            fiveHour: { remaining: 0.08, resetEn: "54m", resetZh: "54 分钟" },
+            fiveHour: null,
             weekly: { remaining: 0.39, resetEn: "2d 18h", resetZh: "2 天 18 小时" },
           },
         ],
@@ -192,15 +192,15 @@ const PLATFORMS = {
         plan: { kind: "max", label: "MAX", title: "Claude Max" },
         groups: [
           {
-            label: "Sonnet",
-            models: "Claude Sonnet",
+            label: "Claude",
+            models: "Shared Claude coding pool",
             fiveHour: { remaining: 0.95, resetEn: "4h 30m", resetZh: "4 小时 30 分" },
             weekly: { remaining: 0.89, resetEn: "5d 04h", resetZh: "5 天 4 小时" },
           },
           {
             label: "Opus",
             models: "Claude Opus",
-            fiveHour: { remaining: 0.86, resetEn: "4h 30m", resetZh: "4 小时 30 分" },
+            fiveHour: null,
             weekly: { remaining: 0.81, resetEn: "5d 04h", resetZh: "5 天 4 小时" },
           },
         ],
@@ -212,8 +212,8 @@ const PLATFORMS = {
         plan: { kind: "pro", label: "PRO", title: "Claude Pro" },
         groups: [
           {
-            label: "Sonnet",
-            models: "Claude Sonnet",
+            label: "Claude",
+            models: "Shared Claude coding pool",
             fiveHour: { remaining: 0.68, resetEn: "3h 10m", resetZh: "3 小时 10 分" },
             weekly: { remaining: 0.55, resetEn: "4d 06h", resetZh: "4 天 6 小时" },
           },
@@ -269,7 +269,7 @@ const I18N = {
     "platforms.claude.sub": "Anthropic Claude Code 与 claude CLI",
     "platforms.claude.status": "桌面关联验证通过 · 切换 beta",
     "platforms.claude.p1": "管理多个本人 Claude Pro / Max 账号，清晰区分当前使用与余量最多账号。",
-    "platforms.claude.p2": "展示 Sonnet 与 Opus 等模型窗口的 5 小时与周度剩余额度及重置时间。",
+    "platforms.claude.p2": "展示共享额度与服务端返回的模型周限额，各窗口分别显示剩余额度和重置时间。",
     "platforms.claude.p3": "确认后切换本地 Claude Code 与桌面端凭据，异常时保留原账号不丢失。",
     "platforms.quotaNote.title": "编程工具额度 ≠ 网页端对话额度",
     "platforms.quotaNote.body":
@@ -361,12 +361,13 @@ function bestAccountId(accounts, activeId) {
   const windows = (group) => [group.fiveHour, group.weekly].filter(Boolean);
   const shape = (acc) =>
     acc.groups
+      .filter((g) => ["Gemini", "Codex", "Claude"].includes(g.label))
       .map((g) => `${g.label}:${g.fiveHour ? "5h" : ""}:${g.weekly ? "week" : ""}`)
       .sort()
       .join("|");
   const score = (acc) => {
     const available = (g) => Math.min(...windows(g).map((w) => w.remaining));
-    const primary = acc.groups.find((g) => g.label !== "Gemini");
+    const primary = acc.groups.find((g) => ["Codex", "Claude"].includes(g.label));
     const gemini = acc.groups.find((g) => g.label === "Gemini");
     return available(primary ?? gemini) + (gemini ? available(gemini) / 1000 : 0);
   };

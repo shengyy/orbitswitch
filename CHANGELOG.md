@@ -18,7 +18,7 @@ All notable changes to OrbitSwitch are documented here. The format follows
 - Codex quota windows follow the provider response, including weekly-only accounts. Only comparable
   windows participate in account recommendations; the website demo follows the same rule.
 - A redesigned bilingual website with a fictional interactive three-platform demo and accurate
-  release download status.
+  release download status. Claude's demo separates shared usage from model-specific weekly limits.
 
 ### Changed
 

@@ -31,7 +31,8 @@ verified.
 - Browser checks with fictional accounts passed for all three tabs in both languages and appearances,
   including confirmation routing, stale/empty/binding states and narrow layouts. The website passed
   desktop and mobile layout, language and interactive-demo checks. App and website checks also cover
-  Pro weekly-only and Plus dual-window fixtures, without inventing absent windows.
+  Pro weekly-only and Plus dual-window fixtures, without inventing absent windows. Claude's website
+  demo preserves shared usage and model-specific weekly limits.
 - Native Windows behavior is **not verified**. Standard installer paths are detected; Store/MSIX,
   independently configured profiles and app-bound cookie encryption are unsupported. CI compilation
   does not establish real account switching on Windows.
