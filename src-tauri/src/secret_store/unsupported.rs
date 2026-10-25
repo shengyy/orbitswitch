@@ -1,4 +1,4 @@
-//! Placeholder for platforms AgyOrbit does not support yet.
+//! Placeholder for platforms OrbitSwitch does not support yet.
 
 use crate::error::{Error, Result};
 

@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { displayName, untilReset } from "../format";
+import { ago, displayName, untilReset } from "../format";
 import { errorText, t } from "../i18n";
 import type { Account, QuotaGroup } from "../types";
 import { Avatar } from "./avatar";
@@ -13,12 +13,12 @@ interface Props {
   active: boolean;
   best: boolean;
   disabled: boolean;
+  needsDesktop: boolean;
+  onBind: () => void;
   onSwitch: () => void;
   onReauth: () => void;
   onMenu: (event: MouseEvent) => void;
 }
-
-const ORDER = { gemini: 0, claude: 1, other: 2 } as const;
 
 /** The tightest low window that will recover, e.g. "Claude 5h · resets in 2h 14m". */
 function recoveryHint(groups: QuotaGroup[]): string | null {
@@ -64,13 +64,17 @@ function QuotaBody({ account, onReauth }: Pick<Props, "account" | "onReauth">) {
         </div>
       );
     case "ready": {
-      const groups = [...quota.groups].sort((a, b) => ORDER[a.key] - ORDER[b.key]);
+      const groups = quota.groups;
       const hint = recoveryHint(groups);
       return (
         <div className="card-quota">
           {groups.map((group) => (
             <QuotaRow key={group.key + group.label} group={group} />
           ))}
+          {!groups.length && <div className="card-hint">{t("quota.unavailable")}</div>}
+          {quota.stale && (
+            <div className="card-stale">{t("quota.stale", { time: ago(quota.fetchedAt) })}</div>
+          )}
           {hint && <div className="card-hint">{hint}</div>}
         </div>
       );
@@ -78,9 +82,19 @@ function QuotaBody({ account, onReauth }: Pick<Props, "account" | "onReauth">) {
   }
 }
 
-export function AccountCard({ account, active, best, disabled, onSwitch, onReauth, onMenu }: Props) {
+export function AccountCard({
+  account,
+  active,
+  best,
+  disabled,
+  needsDesktop,
+  onBind,
+  onSwitch,
+  onReauth,
+  onMenu,
+}: Props) {
   const name = displayName(account.name, account.email);
-  const canSwitch = !active && !disabled && account.quota.status !== "reauth";
+  const canSwitch = !active && !disabled && !needsDesktop && account.quota.status !== "reauth";
   const classes = ["card", active && "card-active", canSwitch && "card-switchable"].filter(Boolean).join(" ");
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents: the account identity button is the keyboard path.
@@ -133,6 +147,22 @@ export function AccountCard({ account, active, best, disabled, onSwitch, onReaut
         </button>
       </header>
       <QuotaBody account={account} onReauth={onReauth} />
+      {needsDesktop && (
+        <div className="card-binding">
+          {t("bind.needed")}
+          <button
+            type="button"
+            className="link-btn"
+            disabled={disabled}
+            onClick={(event) => {
+              event.stopPropagation();
+              onBind();
+            }}
+          >
+            {t("bind.action")}
+          </button>
+        </div>
+      )}
     </article>
   );
 }

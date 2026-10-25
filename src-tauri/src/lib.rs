@@ -1,4 +1,4 @@
-//! AgyOrbit: switch Google Antigravity accounts from the menu bar or tray.
+//! OrbitSwitch: switch Google Antigravity accounts from the menu bar or tray.
 
 mod accounts;
 mod antigravity;
@@ -7,6 +7,8 @@ mod commands;
 mod error;
 mod google;
 mod model;
+mod native;
+mod provider;
 mod quota;
 mod registry;
 mod scheduler;
@@ -60,11 +62,12 @@ pub fn run() {
             commands::refresh,
             commands::add_account,
             commands::cancel_add_account,
+            commands::import_account,
             commands::remove_account,
             commands::switch_account,
             commands::running_processes,
-            commands::stop_antigravity,
-            commands::restart_antigravity,
+            commands::stop_client,
+            commands::restart_client,
             commands::resize_panel,
             commands::reveal_logs,
             commands::autostart_enabled,
@@ -74,5 +77,5 @@ pub fn run() {
             commands::quit,
         ])
         .run(tauri::generate_context!())
-        .expect("AgyOrbit failed to start");
+        .expect("OrbitSwitch failed to start");
 }

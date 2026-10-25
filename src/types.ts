@@ -1,12 +1,24 @@
 // Mirrors src-tauri/src/model.rs. The backend is the source of truth.
 
-export type GroupKey = "gemini" | "claude" | "other";
-export type PlanKind = "free" | "pro" | "ultra";
+export type Provider = "antigravity" | "codex" | "claude";
+export type GroupKey = "gemini" | "claude" | "codex" | "review" | "sonnet" | "opus" | "other";
+export type PlanKind =
+  | "free"
+  | "pro"
+  | "ultra"
+  | "plus"
+  | "max"
+  | "team"
+  | "business"
+  | "enterprise"
+  | "unknown";
 
 export interface QuotaWindow {
   /** 0–1 share still available. */
   remaining: number;
   resetAt: string | null;
+  label: string;
+  durationMinutes: number | null;
 }
 
 export interface QuotaGroup {
@@ -15,6 +27,7 @@ export interface QuotaGroup {
   models: string[];
   fiveHour: QuotaWindow | null;
   weekly: QuotaWindow | null;
+  extra: QuotaWindow[];
 }
 
 export interface Plan {
@@ -24,11 +37,13 @@ export interface Plan {
 
 export type QuotaState =
   | { status: "loading" }
-  | { status: "ready"; groups: QuotaGroup[]; fetchedAt: string }
+  | { status: "ready"; groups: QuotaGroup[]; fetchedAt: string; stale: boolean }
   | { status: "failed"; code: string; message: string }
   | { status: "reauth" };
 
 export interface Account {
+  provider: Provider;
+  desktopReady: boolean;
   id: string;
   email: string;
   name: string | null;
@@ -41,10 +56,10 @@ export type SwitchStep = "preparing" | "closing" | "writing" | "launching";
 
 export type Operation =
   | { kind: "idle" }
-  | { kind: "adding" }
-  | { kind: "switching"; targetId: string; step: SwitchStep }
-  | { kind: "stopping" }
-  | { kind: "restarting" }
+  | { kind: "adding"; provider: Provider }
+  | { kind: "switching"; provider: Provider; targetId: string; step: SwitchStep }
+  | { kind: "stopping"; provider: Provider }
+  | { kind: "restarting"; provider: Provider }
   | {
       kind: "updating";
       step: "downloading" | "verifying" | "installing" | "restarting";
@@ -61,9 +76,8 @@ export interface Snapshot {
   platform: "macos" | "windows" | "linux";
   version: string;
   accounts: Account[];
-  activeId: string | null;
   operation: Operation;
-  antigravity: { installed: boolean; running: boolean };
+  providers: ProviderStatus[];
   refreshing: boolean;
   refreshedAt: string | null;
   update: { checking: boolean; available: UpdateInfo | null };
@@ -80,4 +94,13 @@ export interface RelatedProcess {
 export interface BackendError {
   code: string;
   message: string;
+}
+
+export interface ProviderStatus {
+  provider: Provider;
+  activeId: string | null;
+  installed: boolean;
+  desktopInstalled: boolean;
+  aligned: boolean;
+  running: boolean;
 }

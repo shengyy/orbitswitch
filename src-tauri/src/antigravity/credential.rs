@@ -8,7 +8,7 @@
 //! ```
 //!
 //! `token` is golang.org/x/oauth2's `Token`. Unknown fields are kept so a
-//! newer Antigravity can add fields without AgyOrbit dropping them.
+//! newer Antigravity can add fields without OrbitSwitch dropping them.
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;

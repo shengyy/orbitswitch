@@ -1,6 +1,7 @@
 // Inline SVG icons drawn on a 16px grid; they inherit `currentColor`.
 
-import type { SVGProps } from "react";
+import type { ImgHTMLAttributes, SVGProps } from "react";
+import orbitLogo from "../../assets/brand/app-icon.svg?url";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -76,35 +77,7 @@ export const WarningIcon = (props: IconProps) => (
   </Icon>
 );
 
-/** The AgyOrbit mark: Antigravity (planet) with accounts in orbit. */
-export const OrbitMark = (props: IconProps) => (
-  <svg viewBox="0 0 64 64" width={18} height={18} {...props} aria-hidden="true">
-    <defs>
-      <linearGradient id="orbit-planet" x1="0.2" y1="0.1" x2="0.85" y2="0.95">
-        <stop offset="0" stopColor="#a9c6ff" />
-        <stop offset="1" stopColor="#3550e0" />
-      </linearGradient>
-    </defs>
-    <ellipse
-      cx="32"
-      cy="32"
-      rx="27"
-      ry="8"
-      fill="none"
-      stroke="currentColor"
-      strokeOpacity=".35"
-      strokeWidth="3.5"
-      transform="rotate(-20 32 32)"
-    />
-    <circle cx="32" cy="32" r="13" fill="url(#orbit-planet)" />
-    <path
-      d="M59 32a27 8 0 0 1-54 0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="3.5"
-      strokeLinecap="round"
-      transform="rotate(-20 32 32)"
-    />
-    <circle cx="56.5" cy="23.4" r="5.5" fill="#ffae35" />
-  </svg>
+/** Shared brand asset; the label around it supplies its accessible name. */
+export const OrbitMark = (props: ImgHTMLAttributes<HTMLImageElement>) => (
+  <img src={orbitLogo} width={18} height={18} {...props} alt="" aria-hidden="true" />
 );

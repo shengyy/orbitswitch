@@ -1,7 +1,7 @@
 //! Open at Login.
 //!
 //! macOS registers the app itself through SMAppService, so System Settings
-//! lists AgyOrbit by name and icon. Its popover starts hidden anyway, so no
+//! lists OrbitSwitch by name and icon. Its popover starts hidden anyway, so no
 //! launch arguments are needed. Windows uses the per-user Run key and passes
 //! `--background` so the window starts hidden.
 
@@ -17,6 +17,7 @@ fn launcher() -> Result<AutoLaunch> {
     {
         let exe = std::env::current_exe()?;
         builder
+            // Retain the installed Windows Run-key identity across the product rename.
             .set_app_name("AgyOrbit")
             .set_app_path(&exe.to_string_lossy())
             .set_args(&[crate::shell::BACKGROUND_ARG]);

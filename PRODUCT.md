@@ -1,79 +1,66 @@
 # Product
 
-This is the single source for what AgyOrbit does, the rules it follows and what it will not do. How it
-looks is in [docs/design.md](docs/design.md); what is verified today is in
-[docs/status.md](docs/status.md).
+OrbitSwitch is a small macOS menu bar / Windows tray utility for switching **your own subscription
+accounts** and seeing their remaining coding quota. Visual rules live in [docs/design.md](docs/design.md),
+verified behavior in [docs/status.md](docs/status.md).
 
-## Purpose
+## Platforms and accounts
 
-AgyOrbit is for people who use the official Google Antigravity app with **more than one of their own
-Google accounts**. It answers two questions from the menu bar (macOS) or tray (Windows): *how much quota
-does each account have left?* and *switch Antigravity to that account, now.*
+| Tab | Managed client | Quota source |
+|---|---|---|
+| Gemini | Antigravity desktop and `agy` CLI | Google Cloud Code model groups |
+| ChatGPT | Codex desktop and CLI | Codex subscription limits |
+| Claude | Claude Desktop and Claude Code | Claude subscription limits |
 
-It is a switcher, not a client: Antigravity itself does all model work.
+Each platform has its own accounts and current sign-in. Changing a tab only changes the view. These
+are coding-client limits; the ChatGPT and Gemini tabs do not claim to show their web-chat quotas.
+Account identity includes the provider and workspace, not just an email address.
 
-## Concepts
+Add accounts through the official browser sign-in. Codex and Claude use their installed official CLI
+in a temporary isolated configuration; the current client sign-in is left in place. **Import** captures
+the current native sign-in. A native sign-in made outside OrbitSwitch is discovered on refresh.
+Removing an account forgets its saved credentials without signing the official client out.
 
-- **Account**: a Google account the user added to AgyOrbit. Identified by Google's stable account id;
-  its refresh token lives in the system credential store.
-- **Current account**: the account the Antigravity app is signed in with right now, read from
-  Antigravity's own credential.
-- **Quota group**: a set of models that share limits, as Google reports them. Today there are two:
-  Gemini, and Claude (Claude Opus, Claude Sonnet, GPT-OSS).
-- **Window**: each group has a 5-hour and a weekly limit. AgyOrbit shows the share **remaining** in each,
-  and when it resets.
-- **Switch**: making Antigravity use another account.
+Claude Desktop has its own browser session. To link it, sign into the same account and workspace in
+Claude Desktop and Claude Code, then import. OrbitSwitch verifies the pair before saving it. An
+unlinked account cannot be applied to an installed Claude Desktop. The card provides a linking action.
+Custom API providers, token environment overrides and independently configured CLI profiles do not
+have the same shared sign-in contract; unsupported configurations fail before credential changes.
 
-## Rules
+## Switching
 
-### Accounts
+Every action that closes a client shows a confirmation naming the affected app and CLI processes.
+Active agent work can stop. OrbitSwitch validates the target authorization before stopping clients,
+saves the latest outgoing sign-in, writes and reads back the new credentials, then opens the installed
+desktop app. CLI sessions must be reopened by the user.
 
-- Accounts are added through Google's own sign-in page in the user's browser, never by asking for a
-  password and never by signing out of Antigravity.
-- Signing in to an account that is already listed renews its authorization.
-- When Antigravity is signed in to an account AgyOrbit has not seen yet (for example after the user
-  signed in inside the IDE), that account is added once, automatically.
-- Removing an account forgets it in AgyOrbit only. It does not sign Antigravity out, and the account is
-  not added back unless Antigravity signs in to it again.
-- If Google revokes an account's authorization, the account stays listed and asks to be signed in again.
+If a credential write or verification fails, restore the original sign-in. A failed rollback is a
+separate error and leaves native clients closed. A launch failure after a verified write reports that
+the account changed but the app needs to be opened manually. Operations and quota updates share a
+lock so OrbitSwitch cannot refresh a token during its own switch.
 
-### Switching
+## Subscription and quota
 
-- Anything that closes Antigravity asks first and names what will close: the app, its helpers and
-  language server, and the `agy` CLI.
-- A switch either completes or leaves the previous sign-in in place: nothing is touched until the target
-  account's authorization is confirmed, and if writing or verifying the new sign-in fails, the previous
-  one is restored.
-- After a switch, Antigravity is opened again.
-- Restart and Quit act on Antigravity only and also ask first.
+Show the reported plan, remaining percentage, each window's duration and reset time. Keep additional
+model scopes and nonstandard windows. Missing information stays unavailable; it is never invented as
+zero or unlimited. Temporary failures retain the last successful numbers with a visible stale label.
 
-### Quota
+Refresh every five minutes and when the panel opens after a minute. Active native accounts keep the
+official client's token-refresh ownership; OrbitSwitch reads its latest credential. Only inactive
+stored accounts can have their refresh token redeemed by OrbitSwitch. Invalid grants require sign-in.
 
-- Quotas refresh in the background every 5 minutes, and when the surface opens if they are older than a
-  minute.
-- The account in use is shown first. Another account is marked *Most left* only when it clearly beats the
-  current one; Claude availability decides (the tighter of its 5-hour and weekly windows), Gemini breaks
-  ties.
-- A temporary error keeps the last good numbers instead of blanking them.
+The current account leads its tab. *Most left* compares fresh, compatible limit windows in that tab;
+it describes remaining share, not an estimate of absolute tokens. For Antigravity, Claude's tightest
+window decides and Gemini breaks ties. For Codex and Claude, their main shared coding pool decides.
 
-### App updates
+## App updates
 
-- Check for new stable releases at startup and every 24 hours while running; the app menu can check
-  immediately. A failed background check stays quiet.
-- A new release appears as a small banner. The user can read its notes, update, or leave it for later.
-- Download and installation start only after confirmation, while no account or process operation is
-  running. The signed package and signed version must verify before installation.
-- Updating restarts AgyOrbit only, preserving accounts and settings. Antigravity keeps running.
+Check stable releases at startup and daily, or from the app menu. Installation requires confirmation,
+checks the signed version and package, and restarts OrbitSwitch. Accounts and settings survive;
+coding clients keep running. The [release contract](docs/release.md) owns build and signing details.
 
 ## Non-goals
 
-- **No API, proxy or relay.** AgyOrbit never exposes accounts to other programs or forwards model
-  traffic.
-- **No sharing.** It is for one person's own accounts on their own computer.
-- **No working around limits.** It does not switch accounts automatically when quota runs out; every
-  switch is the user's decision.
-- **No other clients.** It manages the official Antigravity app and its `agy` CLI, nothing else.
-- **No platforms beyond macOS 26+ and Windows 10/11 x64** for now; there is no legacy-macOS fallback.
-
-Feature requests that cross these lines are declined; anything else is weighed against keeping AgyOrbit
-small.
+No model client, API gateway, proxy, relay, shared-account service or automatic switching when quota
+runs out. No password collection or self-hosted account server. No platforms beyond macOS 26+ and
+Windows 10/11 x64. Platform and integration limitations are explicit in [status](docs/status.md).

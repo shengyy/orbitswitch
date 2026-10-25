@@ -1,7 +1,7 @@
 //! Cloud Code endpoints Antigravity uses for quota and subscription tier.
 
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 use crate::antigravity::install::Install;
 use crate::error::{Error, Result};
@@ -10,46 +10,7 @@ use crate::error::{Error, Result};
 /// (`--cloud_code_endpoint`).
 const BASE: &str = "https://daily-cloudcode-pa.googleapis.com/v1internal";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum GroupKey {
-    Gemini,
-    Claude,
-    Other,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuotaWindow {
-    /// 0.0–1.0 share of the window still available.
-    pub remaining: f64,
-    pub reset_at: Option<DateTime<Utc>>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QuotaGroup {
-    pub key: GroupKey,
-    pub label: String,
-    pub models: Vec<String>,
-    pub five_hour: Option<QuotaWindow>,
-    pub weekly: Option<QuotaWindow>,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum PlanKind {
-    Free,
-    Pro,
-    Ultra,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Plan {
-    pub kind: PlanKind,
-    pub name: String,
-}
+pub use crate::model::{GroupKey, Plan, PlanKind, QuotaGroup, QuotaWindow};
 
 #[derive(Deserialize)]
 struct SummaryResponse {
@@ -158,7 +119,7 @@ fn parse_group(group: RawGroup) -> QuotaGroup {
     let label = match key {
         GroupKey::Gemini => "Gemini".to_owned(),
         GroupKey::Claude => "Claude".to_owned(),
-        GroupKey::Other => group.display_name.clone(),
+        _ => group.display_name.clone(),
     };
     // "Models within this group: Claude Opus, Claude Sonnet, GPT-OSS"
     let models = group
@@ -179,6 +140,8 @@ fn parse_group(group: RawGroup) -> QuotaGroup {
             .map(|b| QuotaWindow {
                 remaining: b.remaining_fraction.clamp(0.0, 1.0),
                 reset_at: b.reset_time,
+                label: name.into(),
+                duration_minutes: Some(if name == "5h" { 300 } else { 10080 }),
             })
     };
     QuotaGroup {
@@ -187,6 +150,17 @@ fn parse_group(group: RawGroup) -> QuotaGroup {
         models,
         five_hour: window("5h"),
         weekly: window("weekly"),
+        extra: group
+            .buckets
+            .iter()
+            .filter(|b| b.window != "5h" && b.window != "weekly")
+            .map(|b| QuotaWindow {
+                remaining: b.remaining_fraction.clamp(0.0, 1.0),
+                reset_at: b.reset_time,
+                label: b.window.clone(),
+                duration_minutes: None,
+            })
+            .collect(),
     }
 }
 
@@ -304,7 +278,7 @@ mod tests {
                                 .then(|| value.trim())
                         })
                         .unwrap();
-                    assert!(ua.starts_with("AgyOrbit/"));
+                    assert!(ua.starts_with("OrbitSwitch/"));
                     // The upstream gate returns HTTP 200 with only Claude if
                     // the vendor product/version token is missing or stale.
                     let groups = if ua.contains(&format!("antigravity/{version}")) {

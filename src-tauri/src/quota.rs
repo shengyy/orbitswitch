@@ -13,6 +13,12 @@ use crate::state::{Inner, Orbit};
 
 /// Refreshes every account concurrently. A refresh already in flight wins.
 pub async fn refresh_all(orbit: &Arc<Orbit>) {
+    let Ok(_sync) = orbit.sync_lock.try_lock() else {
+        return;
+    };
+    if !orbit.is_idle() {
+        return;
+    }
     let ids = {
         let mut state = orbit.state();
         if state.refreshing {
@@ -46,7 +52,7 @@ pub async fn refresh_if_stale(orbit: &Arc<Orbit>, max_age: Duration) {
         .refreshed_at
         .is_none_or(|at| (Utc::now() - at).to_std().unwrap_or_default() > max_age);
     if stale {
-        refresh_all(orbit).await;
+        crate::scheduler::tick(orbit).await;
     }
 }
 
@@ -56,6 +62,11 @@ struct Refresh {
 }
 
 pub async fn refresh_one(orbit: &Arc<Orbit>, account_id: &str) {
+    let provider = orbit.state().registry.get(account_id).map(|a| a.provider);
+    if let Some(provider) = provider.filter(|p| *p != crate::provider::Provider::Antigravity) {
+        crate::native::refresh(orbit, provider, account_id).await;
+        return;
+    }
     let result = async {
         let token = orbit.access_token(account_id).await?;
         let cloudcode = cloudcode::Client::new(&orbit.http, &orbit.install()?)?;
@@ -86,6 +97,7 @@ fn apply_refresh(state: &mut Inner, account_id: &str, result: Result<Refresh>) {
         Ok(groups) => QuotaState::Ready {
             groups,
             fetched_at: Utc::now(),
+            stale: false,
         },
         Err(Error::TokenRevoked) => QuotaState::Reauth,
         Err(err) => {
@@ -99,6 +111,10 @@ fn apply_refresh(state: &mut Inner, account_id: &str, result: Result<Refresh>) {
     // Keep the account's last good numbers visible through a transient error.
     let keep_previous = matches!(quota, QuotaState::Failed { .. })
         && matches!(state.quotas.get(account_id), Some(QuotaState::Ready { .. }));
+    if keep_previous && let Some(QuotaState::Ready { stale, .. }) = state.quotas.get_mut(account_id)
+    {
+        *stale = true;
+    }
     if !keep_previous && state.registry.get(account_id).is_some() {
         state.quotas.insert(account_id.to_owned(), quota);
     }
@@ -116,6 +132,8 @@ mod tests {
         let mut registry = Registry::load(dir.path()).unwrap();
         registry
             .upsert(Account {
+                provider: crate::provider::Provider::Antigravity,
+                desktop_ready: true,
                 id: "sample".into(),
                 email: "sample@example.com".into(),
                 name: None,
@@ -133,6 +151,9 @@ mod tests {
                 registry,
                 quotas: Default::default(),
                 active_id: None,
+                native_active: Default::default(),
+                native_aligned: Default::default(),
+                native_clients: Default::default(),
                 operation: Operation::Idle,
                 refreshing: false,
                 refreshed_at: None,
@@ -161,6 +182,7 @@ mod tests {
                     QuotaState::Ready {
                         groups: Vec::new(),
                         fetched_at: previous_fetch,
+                        stale: false,
                     },
                 );
             }
@@ -215,6 +237,7 @@ mod tests {
             QuotaState::Ready {
                 groups: Vec::new(),
                 fetched_at: Utc::now(),
+                stale: false,
             },
         );
         apply_refresh(&mut state, "sample", Err(Error::TokenRevoked));

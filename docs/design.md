@@ -4,7 +4,7 @@ This page owns the app and website's visual presentation and interaction, icons 
 Product behavior lives in [PRODUCT.md](../PRODUCT.md); build, signing and website publishing live in
 [release.md](release.md).
 
-AgyOrbit should feel like part of the operating system: one glance to see every account's quota, one
+OrbitSwitch should feel like part of the operating system: one glance to see every account's quota, one
 confirmed click to switch.
 
 ## Surfaces
@@ -14,17 +14,18 @@ confirmed click to switch.
   Liquid Glass container through `window-vibrancy`’s `content_view` API; that container clips all page
   fills and confirmation backdrops to the same 18 pt corners. The extra system window shadow is
   disabled. macOS 26 or later.
-- **Windows**: a compact window opened from the tray icon. Closing it keeps AgyOrbit in the tray.
+- **Windows**: a compact window opened from the tray icon. Closing it keeps OrbitSwitch in the tray.
 - Both run the same React UI; `platform-macos` / `platform-windows` on the root only change surface
   tokens and sizing.
 - Left click toggles the surface. Right click opens a native menu (open, quit).
-- Open at Login shows AgyOrbit by name and icon in macOS System Settings; on Windows it starts hidden
+- Open at Login shows OrbitSwitch by name and icon in macOS System Settings; on Windows it starts hidden
   in the tray. Registration is described in [architecture.md](architecture.md).
 
 ## Interaction
 
 What happens and when is defined in [PRODUCT.md](../PRODUCT.md); this is how it is presented.
 
+- The Gemini / ChatGPT / Claude tab bar selects a view only. Arrow keys, Home and End move between tabs. Each provider has its own current account and installed/running state.
 - Confirmations are sheets that slide up inside the surface, never separate windows. Enter confirms,
   Escape cancels, and a confirmation names what it will close.
 - Long operations show their real progress (switch steps come from the backend) and cannot be dismissed
@@ -40,7 +41,7 @@ What happens and when is defined in [PRODUCT.md](../PRODUCT.md); this is how it 
 
 ## Account card
 
-- Avatar (Google photo, else initials), name, plan badge (`PRO` / `ULTRA` / `FREE`), email.
+- Avatar (Google photo, else initials), name, plan badge (provider-reported `PRO` / `ULTRA` / `PLUS` / `MAX` / team tiers), email.
 - Tags follow the name and plan badge: `Current` for the account in use, `Most left` for the account
   worth switching to.
 - One row per quota group (Gemini, Claude) with the 5-hour and weekly windows side by side, each a meter
@@ -57,17 +58,23 @@ Defined once in `src/styles/tokens.css`: text and fill opacities, accent, meter 
 surfaces, light and dark. Components use tokens only. Type is the system font at 13 px (11–11.5 px for
 secondary text) with tabular numerals for percentages.
 
-## Icon
+## Icons
 
-A planet (Antigravity) with accounts in orbit; the glowing satellite is the active account. The app
-icon is `assets/brand/app-icon.svg`; the menu bar template (black + alpha, 18 pt high) is
-`assets/brand/tray-template.svg`. AgyOrbit does not reuse Antigravity's or Google's marks.
+OrbitSwitch's rotary selector has three segmented arcs for the three platforms and a central pointer
+for switching accounts. It has no planet, satellite or vendor-logo dependency. The colored mark is
+owned by `assets/brand/app-icon.svg`; app UI and website reuse it. The matching transparent monochrome
+mark is `assets/brand/tray-template.svg`, with solid paths and clear gaps for native tinting at 16/18px.
+The charcoal tile uses quiet gray-green inactive arcs, a mineral-green active arc (`#82AA98`) and a
+warm-white pointer (`#F3F0E8`). The website and app use the same mineral palette, with deeper green
+for text and buttons on light backgrounds. No colored glow or complementary blue/orange gradient.
+Quota warning and error colors remain semantic, independent of the brand palette.
+Both were designed by Argon High and checked at 16, 18, 32, 128 and 1024px.
 
 Regenerate the bundled icons after editing the SVGs:
 
 ```bash
-rsvg-convert -w 1024 -h 1024 assets/brand/app-icon.svg -o /tmp/agyorbit-icon.png
-bun tauri icon /tmp/agyorbit-icon.png -o src-tauri/icons
+rsvg-convert -w 1024 -h 1024 assets/brand/app-icon.svg -o /tmp/orbitswitch-icon.png
+bun tauri icon /tmp/orbitswitch-icon.png -o src-tauri/icons
 rm -rf src-tauri/icons/android src-tauri/icons/ios src-tauri/icons/Square*Logo.png src-tauri/icons/StoreLogo.png src-tauri/icons/64x64.png
 rsvg-convert -h 36 assets/brand/tray-template.svg -o src-tauri/icons/tray-template.png
 ```
@@ -83,12 +90,17 @@ bun scripts/screenshot/render.ts   # needs Google Chrome and ImageMagick
 
 It builds the frontend, replaces Tauri's IPC with `scripts/screenshot/mock-tauri.js` (demo data and
 scenes), stages the popover under a menu bar with `frame.css`, renders at 3x and writes
-`assets/screenshots/{hero,flow}-{light,dark}@3x.png` plus 2x copies without the suffix. The README uses
-the 2x images; the website offers both through `srcset`. Never commit screenshots of real accounts.
+`assets/screenshots/{hero,flow,codex,claude}-{light,dark}@3x.png` plus 2x copies without the suffix. The README uses
+the 2x images; the website has a separate interactive fictional demo. Never commit screenshots of real accounts.
 
 ## Website
 
-`site/style.css` uses rem sizes with a fluid root font size (16px up to ~1280px wide, 22px on large
-displays), so the whole page scales up instead of leaving wide margins. Screenshot generation and
-resolutions are defined above; `site/index.html` selects them through `srcset`. Publishing, download
-button behavior and local preview are in [release.md](release.md#website).
+A restrained instrument-like layout combines generous whitespace, thin rules, compact technical
+labels and an interactive menu-bar demo. `site/style.css` owns page layout and responsive rules;
+`site/demo.css` owns the demo surface. `site/demo.js` owns fictional accounts, localized copy and
+keyboard interaction. All demo accounts use `example.com`; they are visibly labeled as demo data.
+The English/Chinese switch, light/dark appearance, focus states and reduced-motion preference apply
+across the page. Technical implementation details are kept out of the primary product flow.
+
+The download resolver distinguishes the legacy 0.1.x release from a multi-platform release. Publishing
+and local preview are described in [release.md](release.md#website).

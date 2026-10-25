@@ -1,7 +1,7 @@
 //! Platform credential store: macOS Keychain or Windows Credential Manager.
 //!
 //! Items are addressed by `(service, account)`, the same scheme go-keyring
-//! uses, so AgyOrbit can read and write the item Antigravity itself owns as well
+//! uses, so OrbitSwitch can read and write the item Antigravity itself owns as well
 //! as its own vault items.
 
 use crate::error::Result;

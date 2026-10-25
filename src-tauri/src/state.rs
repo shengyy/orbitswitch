@@ -13,18 +13,19 @@ use crate::antigravity::oauth_client::{self, OAuthClient};
 use crate::antigravity::process;
 use crate::error::{Error, Result};
 use crate::google::{USER_AGENT, oauth};
-use crate::model::{
-    AccountView, AntigravityStatus, Operation, QuotaState, SNAPSHOT_EVENT, Snapshot,
-};
+use crate::model::{AccountView, Operation, ProviderStatus, QuotaState, SNAPSHOT_EVENT, Snapshot};
+use crate::provider::Provider;
 use crate::registry::Registry;
 use crate::tokens::TokenCache;
 use crate::updater::UpdateState;
 use crate::vault;
+use std::collections::BTreeMap;
 
 pub struct Orbit {
     pub app: AppHandle,
     pub http: reqwest::Client,
     pub tokens: TokenCache,
+    pub sync_lock: tokio::sync::Mutex<()>,
     inner: Mutex<Inner>,
     client: OnceCell<OAuthClient>,
     op_lock: Arc<tokio::sync::Mutex<()>>,
@@ -35,6 +36,9 @@ pub struct Inner {
     pub registry: Registry,
     pub quotas: HashMap<String, QuotaState>,
     pub active_id: Option<String>,
+    pub native_active: BTreeMap<Provider, Option<String>>,
+    pub native_aligned: BTreeMap<Provider, bool>,
+    pub native_clients: BTreeMap<Provider, (crate::native::install::Install, bool)>,
     pub operation: Operation,
     pub refreshing: bool,
     pub refreshed_at: Option<DateTime<Utc>>,
@@ -43,7 +47,7 @@ pub struct Inner {
     pub update: UpdateState,
 }
 
-/// Holds the single operation slot; dropping it returns AgyOrbit to idle.
+/// Holds the single operation slot; dropping it returns OrbitSwitch to idle.
 pub struct OpGuard {
     orbit: Arc<Orbit>,
     _lock: OwnedMutexGuard<()>,
@@ -63,6 +67,7 @@ impl Orbit {
             .map_err(|err| Error::Invalid(err.to_string()))?;
         let http = reqwest::Client::builder()
             .user_agent(USER_AGENT)
+            .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
             .build()?;
@@ -72,10 +77,14 @@ impl Orbit {
             app,
             http,
             tokens: TokenCache::default(),
+            sync_lock: tokio::sync::Mutex::new(()),
             inner: Mutex::new(Inner {
                 registry: Registry::load(&data_dir)?,
                 quotas: HashMap::new(),
                 active_id: None,
+                native_active: BTreeMap::new(),
+                native_aligned: BTreeMap::new(),
+                native_clients: BTreeMap::new(),
                 operation: Operation::Idle,
                 refreshing: false,
                 refreshed_at: None,
@@ -110,6 +119,8 @@ impl Orbit {
                 .accounts()
                 .iter()
                 .map(|account| AccountView {
+                    provider: account.provider,
+                    desktop_ready: account.desktop_ready,
                     id: account.id.clone(),
                     email: account.email.clone(),
                     name: account.name.clone(),
@@ -122,12 +133,42 @@ impl Orbit {
                         .unwrap_or(QuotaState::Loading),
                 })
                 .collect(),
-            active_id: state.active_id.clone(),
+            providers: Provider::ALL
+                .into_iter()
+                .map(|provider| {
+                    if provider == Provider::Antigravity {
+                        ProviderStatus {
+                            provider,
+                            active_id: state.active_id.clone(),
+                            installed: state.install.is_some(),
+                            desktop_installed: state.install.is_some(),
+                            aligned: true,
+                            running: state.running,
+                        }
+                    } else {
+                        let (install, running) = state
+                            .native_clients
+                            .get(&provider)
+                            .cloned()
+                            .unwrap_or_default();
+                        let aligned = install.app.is_none()
+                            || state.native_aligned.get(&provider) == Some(&true);
+                        ProviderStatus {
+                            provider,
+                            active_id: if aligned {
+                                state.native_active.get(&provider).cloned().flatten()
+                            } else {
+                                None
+                            },
+                            aligned,
+                            installed: install.cli.is_some() || install.app.is_some(),
+                            desktop_installed: install.app.is_some(),
+                            running,
+                        }
+                    }
+                })
+                .collect(),
             operation: state.operation.clone(),
-            antigravity: AntigravityStatus {
-                installed: state.install.is_some(),
-                running: state.running,
-            },
             refreshing: state.refreshing,
             refreshed_at: state.refreshed_at,
             update: state.update.snapshot(),
@@ -140,7 +181,7 @@ impl Orbit {
         }
     }
 
-    /// Re-checks whether Antigravity is installed and running.
+    /// Re-checks installed clients and running processes outside the snapshot lock.
     pub fn refresh_status(&self) {
         let install = self
             .state()
@@ -149,7 +190,16 @@ impl Orbit {
             .filter(|i| i.main_exe.is_file())
             .or_else(Install::locate);
         let running = process::is_app_running(install.as_ref());
+        let native_clients = [Provider::Codex, Provider::Claude]
+            .into_iter()
+            .map(|provider| {
+                let install = crate::native::install::locate(provider);
+                let running = crate::native::process::is_running(provider, &install);
+                (provider, (install, running))
+            })
+            .collect();
         self.update(|state| {
+            state.native_clients = native_clients;
             state.install = install;
             state.running = running;
         });

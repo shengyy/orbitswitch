@@ -1,10 +1,40 @@
 # Changelog
 
-All notable changes to AgyOrbit are documented here. The format follows
+All notable changes to OrbitSwitch are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
+
+### Added
+
+- Gemini / ChatGPT / Claude tabs with independent accounts and current-client state.
+- Codex and Claude subscription sign-in, current-account import, plan/quota adapters and confirmed
+  switching. Claude Desktop is paired with Claude Code by verified account and workspace identity.
+- Native credential rollback and identity checks, stale-quota labels, model scopes and additional
+  limit durations. Active clients retain ownership of their token refresh.
+- A redesigned bilingual website with a fictional interactive three-platform demo and accurate
+  release download status.
+
+### Changed
+
+- Replace the Antigravity-themed planet with a three-segment rotary selector logo across the app,
+  tray, website and installers.
+- Rename the project to OrbitSwitch and the repository to `shengyy/orbitswitch`. Preserve the
+  `io.github.shengyy.agyorbit` application identifier, existing Google credential service and saved
+  account directory. No data migration is required.
+
+### Manual cleanup
+
+- If installing a renamed `.app` alongside an existing `AgyOrbit.app`, quit the old app and remove
+  only that old application bundle; keep its application-data and keychain entries. Avoid running
+  both names together. Existing in-place updates can retain the original bundle directory name.
+- If the app crashes during an isolated Codex/Claude login, after closing that login process remove
+  only its `orbitswitch-login-*` directory in the OS temporary folder. On macOS, remove the associated
+  temporary `Claude Code-credentials-<hash>` keychain entry if one was created. Do not remove the
+  unsuffixed native credential or unrelated profile entries.
+
+New adapter verification limits are documented in [status](docs/status.md).
 
 ## [0.1.8] - 2026-10-16
 

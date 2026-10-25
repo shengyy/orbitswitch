@@ -1,4 +1,4 @@
-//! The surface AgyOrbit lives in: a Liquid Glass popover under the menu bar
+//! The surface OrbitSwitch lives in: a Liquid Glass popover under the menu bar
 //! icon on macOS, a compact window on Windows.
 
 use std::sync::Mutex;
@@ -14,7 +14,7 @@ pub const LABEL: &str = "main";
 /// macOS popover is hidden until clicked anyway.
 #[cfg(not(target_os = "macos"))]
 pub const BACKGROUND_ARG: &str = "--background";
-pub const SHOWN_EVENT: &str = "agyorbit://shown";
+pub const SHOWN_EVENT: &str = "orbitswitch://shown";
 #[cfg(target_os = "macos")]
 const PANEL_WIDTH: f64 = 360.0;
 /// A tray click right after the popover lost focus is the same click that
@@ -28,7 +28,7 @@ pub struct ShellState {
 
 pub fn create(app: &AppHandle) -> tauri::Result<WebviewWindow> {
     let builder = WebviewWindowBuilder::new(app, LABEL, WebviewUrl::App("index.html".into()))
-        .title("AgyOrbit");
+        .title("OrbitSwitch");
 
     #[cfg(target_os = "macos")]
     let builder = {
@@ -127,7 +127,7 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
         // The popover behaves like a menu: it goes away when focus leaves.
         #[cfg(target_os = "macos")]
         WindowEvent::Focused(false) => hide(window),
-        // Closing the Windows window keeps AgyOrbit running in the tray.
+        // Closing the Windows window keeps OrbitSwitch running in the tray.
         WindowEvent::CloseRequested { api, .. } => {
             api.prevent_close();
             hide(window);

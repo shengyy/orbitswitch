@@ -1,8 +1,8 @@
 .quota-row {
   display: grid;
-  grid-template-columns: 46px 1fr 1fr;
+  grid-template-columns: 70px 1fr;
   align-items: center;
-  gap: 12px;
+  gap: 9px;
 }
 
 .quota-group {
@@ -64,4 +64,13 @@
 
 .meter-empty .meter-value {
   color: var(--text-3);
+}
+
+.quota-windows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+.quota-group {
+  overflow-wrap: anywhere;
 }

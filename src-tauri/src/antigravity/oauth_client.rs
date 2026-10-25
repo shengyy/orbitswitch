@@ -1,7 +1,7 @@
 //! Antigravity's own OAuth client.
 //!
-//! AgyOrbit signs accounts in with the same client the IDE uses, so a refresh
-//! token from AgyOrbit's browser sign-in is interchangeable with one from the
+//! OrbitSwitch signs accounts in with the same client the IDE uses, so a refresh
+//! token from OrbitSwitch's browser sign-in is interchangeable with one from the
 //! IDE's own sign-in. The client ID is public (it appears in every sign-in
 //! URL). The installed-app secret is read from the local Antigravity binaries
 //! at runtime and verified against Google's token endpoint, so this

@@ -5,11 +5,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting. Please never paste tokens or account emails; AgyOrbit's logs don't contain tokens, but check before attaching.
+        Thanks for reporting. Please never paste tokens or account emails; OrbitSwitch's logs don't contain tokens, but check before attaching.
   - type: input
     id: version
     attributes:
-      label: AgyOrbit version
+      label: OrbitSwitch version
       description: Shown at the top of the `⋯` menu.
       placeholder: "0.1.0"
     validations:

@@ -2,11 +2,11 @@
 //! never sees tokens.
 
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use crate::google::cloudcode::{Plan, QuotaGroup};
+use crate::provider::Provider;
 
-pub const SNAPSHOT_EVENT: &str = "agyorbit://snapshot";
+pub const SNAPSHOT_EVENT: &str = "orbitswitch://snapshot";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,10 +14,9 @@ pub struct Snapshot {
     pub platform: &'static str,
     pub version: &'static str,
     pub accounts: Vec<AccountView>,
-    /// The account Antigravity is signed in with, when AgyOrbit knows it.
-    pub active_id: Option<String>,
+    /// The verified current sign-in and detected client status for each provider.
+    pub providers: Vec<ProviderStatus>,
     pub operation: Operation,
-    pub antigravity: AntigravityStatus,
     pub refreshing: bool,
     pub refreshed_at: Option<DateTime<Utc>>,
     pub update: UpdateStatus,
@@ -39,6 +38,8 @@ pub struct UpdateInfo {
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountView {
+    pub provider: Provider,
+    pub desktop_ready: bool,
     pub id: String,
     pub email: String,
     pub name: Option<String>,
@@ -55,18 +56,23 @@ pub enum QuotaState {
     Ready {
         groups: Vec<QuotaGroup>,
         fetched_at: DateTime<Utc>,
+        stale: bool,
     },
     Failed {
         code: String,
         message: String,
     },
-    /// Google revoked the refresh token; the account must sign in again.
+    /// Authorization is no longer accepted; the account must sign in again.
     Reauth,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct AntigravityStatus {
+pub struct ProviderStatus {
+    pub provider: Provider,
+    pub active_id: Option<String>,
+    pub desktop_installed: bool,
+    pub aligned: bool,
     pub installed: bool,
     pub running: bool,
 }
@@ -75,14 +81,21 @@ pub struct AntigravityStatus {
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Operation {
     Idle,
-    Adding,
+    Adding {
+        provider: Provider,
+    },
     #[serde(rename_all = "camelCase")]
     Switching {
+        provider: Provider,
         target_id: String,
         step: SwitchStep,
     },
-    Stopping,
-    Restarting,
+    Stopping {
+        provider: Provider,
+    },
+    Restarting {
+        provider: Provider,
+    },
     Updating {
         step: UpdateStep,
         downloaded: u64,
@@ -108,4 +121,61 @@ pub enum SwitchStep {
     Closing,
     Writing,
     Launching,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GroupKey {
+    Gemini,
+    Claude,
+    Other,
+    Codex,
+    Review,
+    Sonnet,
+    Opus,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuotaWindow {
+    /// 0.0–1.0 share of the window still available.
+    pub remaining: f64,
+    pub reset_at: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub label: String,
+    #[serde(default)]
+    pub duration_minutes: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QuotaGroup {
+    pub key: GroupKey,
+    pub label: String,
+    pub models: Vec<String>,
+    pub five_hour: Option<QuotaWindow>,
+    pub weekly: Option<QuotaWindow>,
+    #[serde(default)]
+    pub extra: Vec<QuotaWindow>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum PlanKind {
+    Free,
+    Pro,
+    Ultra,
+    Plus,
+    Max,
+    Team,
+    Business,
+    Enterprise,
+    Unknown,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Plan {
+    pub kind: PlanKind,
+    pub name: String,
 }

@@ -140,27 +140,27 @@ fn page(success: bool, chinese: bool) -> String {
         (true, true) => (
             "zh-CN",
             "授权完成",
-            "账号已添加到 AgyOrbit，可以关闭此页面。",
+            "账号已添加到 OrbitSwitch，可以关闭此页面。",
         ),
         (true, false) => (
             "en",
             "You're all set",
-            "The account was added to AgyOrbit. You can close this tab.",
+            "The account was added to OrbitSwitch. You can close this tab.",
         ),
         (false, true) => (
             "zh-CN",
             "授权未完成",
-            "Google 没有授予访问权限。回到 AgyOrbit 重新添加即可。",
+            "Google 没有授予访问权限。回到 OrbitSwitch 重新添加即可。",
         ),
         (false, false) => (
             "en",
             "Sign-in not completed",
-            "Google did not grant access. Return to AgyOrbit to try again.",
+            "Google did not grant access. Return to OrbitSwitch to try again.",
         ),
     };
     let mark = if success { "#3b82f6" } else { "#f97316" };
     format!(
-        r#"<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · AgyOrbit</title>
+        r#"<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · OrbitSwitch</title>
 <style>
 :root{{color-scheme:light dark;--bg:#f5f6f8;--card:#fff;--text:#111827;--muted:#6b7280;--line:rgba(17,24,39,.08)}}
 @media (prefers-color-scheme:dark){{:root{{--bg:#0d1117;--card:#161b22;--text:#e6edf3;--muted:#8b949e;--line:rgba(240,246,252,.1)}}}}

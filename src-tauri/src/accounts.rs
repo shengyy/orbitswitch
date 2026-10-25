@@ -13,6 +13,7 @@ use crate::error::{Error, Result};
 use crate::google::loopback::Loopback;
 use crate::google::oauth::{self, IdClaims, Pkce, Profile};
 use crate::model::Operation;
+use crate::provider::Provider;
 use crate::registry::{self, Account};
 use crate::state::Orbit;
 use crate::{quota, shell, vault};
@@ -22,7 +23,10 @@ const SIGN_IN_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 /// Runs the browser sign-in and stores the account. Signing in to an account
 /// that is already listed renews its authorization. Returns the account id.
 pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
-    let guard = orbit.begin(Operation::Adding)?;
+    let guard = orbit.begin(Operation::Adding {
+        provider: Provider::Antigravity,
+    })?;
+    let sync = orbit.sync_lock.lock().await;
     let client = orbit.oauth_client().await?;
     let loopback = Loopback::bind().await?;
     let redirect_uri = loopback.redirect_uri.clone();
@@ -57,6 +61,7 @@ pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
     orbit.update(|state| state.registry.upsert(account_from(&profile)))?;
     log::info!("account added");
 
+    drop(sync);
     drop(guard);
     shell::show(&orbit.app);
     quota::refresh_one(orbit, &profile.id).await;
@@ -68,7 +73,11 @@ pub fn cancel_add(orbit: &Orbit) {
 }
 
 /// Forgets the account. Antigravity stays signed in if it was the active one.
-pub fn remove(orbit: &Orbit, account_id: &str) -> Result<()> {
+pub async fn remove(orbit: &Arc<Orbit>, account_id: &str) -> Result<()> {
+    let _guard = orbit.begin(Operation::Adding {
+        provider: Provider::Antigravity,
+    })?;
+    let _sync = orbit.sync_lock.lock().await;
     vault::delete(account_id)?;
     orbit.tokens.forget(account_id);
     orbit.update(|state| {
@@ -77,9 +86,15 @@ pub fn remove(orbit: &Orbit, account_id: &str) -> Result<()> {
     })
 }
 
-/// Follows the account Antigravity is signed in with. A sign-in that AgyOrbit
+/// Follows the account Antigravity is signed in with. A sign-in that OrbitSwitch
 /// has not seen yet (for example one made inside the IDE) is adopted once.
 pub async fn sync_live(orbit: &Arc<Orbit>) -> Result<()> {
+    let Ok(_sync) = orbit.sync_lock.try_lock() else {
+        return Ok(());
+    };
+    if !orbit.is_idle() {
+        return Ok(());
+    }
     let Some(bundle) = tokio::task::spawn_blocking(live::read)
         .await
         .map_err(|err| Error::Invalid(err.to_string()))??
@@ -143,6 +158,8 @@ fn profile_from_claims(claims: &IdClaims) -> Profile {
 
 fn account_from(profile: &Profile) -> Account {
     Account {
+        provider: Provider::Antigravity,
+        desktop_ready: true,
         id: profile.id.clone(),
         email: profile.email.clone(),
         name: profile.name.clone(),

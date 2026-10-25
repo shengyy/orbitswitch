@@ -27,5 +27,13 @@ pub async fn tick(orbit: &Arc<Orbit>) {
     if let Err(err) = accounts::sync_live(orbit).await {
         log::warn!("could not read Antigravity's sign-in: {err}");
     }
+    for provider in [
+        crate::provider::Provider::Codex,
+        crate::provider::Provider::Claude,
+    ] {
+        if let Err(err) = crate::native::sync_live(orbit, provider).await {
+            log::warn!("could not follow {} sign-in: {err}", provider.key());
+        }
+    }
     quota::refresh_all(orbit).await;
 }

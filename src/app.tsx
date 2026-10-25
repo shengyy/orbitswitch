@@ -6,6 +6,7 @@ import { ConfirmSheet } from "./components/confirm-sheet";
 import { EmptyState } from "./components/empty-state";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
+import { ProviderTabs } from "./components/provider-tabs";
 import { ResultSheet } from "./components/result-sheet";
 import { CheckingUpdateSheet, UpdateBanner, UpdateSheet } from "./components/update-sheet";
 import { displayName } from "./format";
@@ -15,8 +16,9 @@ import { useTicker } from "./hooks/use-ticker";
 import { errorText, t } from "./i18n";
 import { asBackendError, ipc, onShown } from "./ipc";
 import { showAccountMenu, showAppMenu } from "./menus";
+import { PROVIDERS, providerInfo } from "./providers";
 import { bestAccountId } from "./quota";
-import type { Account, ProcessKind, RelatedProcess, UpdateInfo } from "./types";
+import type { Account, ProcessKind, Provider, RelatedProcess, UpdateInfo } from "./types";
 import "./app.css";
 
 type Dialog =
@@ -24,23 +26,40 @@ type Dialog =
   | { kind: "checkingUpdate" }
   | { kind: "switch"; account: Account; processes: RelatedProcess[] }
   | { kind: "remove"; account: Account }
-  | { kind: "stop" | "restart"; processes: RelatedProcess[] }
+  | { kind: "bind"; account: Account }
+  | { kind: "stop" | "restart"; processes: RelatedProcess[]; provider: Provider }
   | { kind: "result"; tone: "success" | "error"; message: string };
 
 const PROCESS_ORDER: ProcessKind[] = ["app", "languageServer", "helper", "cli"];
 
-function describeProcesses(processes: RelatedProcess[]): string | null {
+function describeProcesses(processes: RelatedProcess[], provider: Provider): string | null {
   const kinds = PROCESS_ORDER.filter((kind) => processes.some((p) => p.kind === kind));
   if (!kinds.length) return null;
   const list = kinds.map((kind) => {
     const count = processes.filter((p) => p.kind === kind).length;
-    return kind === "cli" && count > 1 ? `${t("process.cli")} ×${count}` : t(`process.${kind}`);
+    return kind === "cli" && count > 1
+      ? `${t("process.cli", providerInfo[provider])} ×${count}`
+      : t(`process.${kind}`, providerInfo[provider]);
   });
   return t("confirm.processes", { list: list.join(" · ") });
 }
 
 export function App() {
   const snapshot = useSnapshot();
+  const [provider, setProvider] = useState<Provider>(() => {
+    try {
+      const stored = localStorage.getItem("orbitswitch.provider") as Provider;
+      return PROVIDERS.includes(stored) ? stored : "antigravity";
+    } catch {
+      return "antigravity";
+    }
+  });
+  const selectProvider = (next: Provider) => {
+    setProvider(next);
+    try {
+      localStorage.setItem("orbitswitch.provider", next);
+    } catch {}
+  };
   const panel = useRef<HTMLDivElement>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   useTicker();
@@ -75,13 +94,17 @@ export function App() {
   if (!snapshot) return null;
 
   const busy = snapshot.operation.kind !== "idle";
-  const best = bestAccountId(snapshot.accounts, snapshot.activeId);
+  const status = snapshot.providers.find((item) => item.provider === provider);
+  if (!status) return null;
+  const vars = providerInfo[provider];
+  const visibleAccounts = snapshot.accounts.filter((account) => account.provider === provider);
+  const best = bestAccountId(visibleAccounts, status.activeId);
   // The account in use leads the list; the rest keep the order they were added in.
-  const accounts = [...snapshot.accounts].sort(
-    (a, b) => Number(b.id === snapshot.activeId) - Number(a.id === snapshot.activeId),
+  const accounts = [...visibleAccounts].sort(
+    (a, b) => Number(b.id === status.activeId) - Number(a.id === status.activeId),
   );
 
-  const addAccount = () => ipc.addAccount().catch(fail);
+  const addAccount = () => ipc.addAccount(provider).catch(fail);
   const checkUpdate = async () => {
     setDialog({ kind: "checkingUpdate" });
     try {
@@ -103,14 +126,14 @@ export function App() {
     }
   };
   const askSwitch = async (account: Account) =>
-    setDialog({ kind: "switch", account, processes: await ipc.runningProcesses() });
-  const askAntigravity = async (kind: "stop" | "restart") => {
-    const processes = await ipc.runningProcesses();
+    setDialog({ kind: "switch", account, processes: await ipc.runningProcesses(account.provider) });
+  const askClient = async (kind: "stop" | "restart") => {
+    const processes = await ipc.runningProcesses(provider);
     if (kind === "restart" && !processes.length) {
-      ipc.restartAntigravity().catch(fail);
+      ipc.restartClient(provider).catch(fail);
       return;
     }
-    setDialog({ kind, processes });
+    setDialog({ kind, processes, provider });
   };
 
   const confirmDialog = () => {
@@ -130,14 +153,17 @@ export function App() {
           .catch(fail);
         break;
       }
+      case "bind":
+        ipc.importAccount("claude", dialog.account.id).catch(fail);
+        break;
       case "remove":
         ipc.removeAccount(dialog.account.id).catch(fail);
         break;
       case "stop":
-        ipc.stopAntigravity().catch(fail);
+        ipc.stopClient(dialog.provider).catch(fail);
         break;
       case "restart":
-        ipc.restartAntigravity().catch(fail);
+        ipc.restartClient(dialog.provider).catch(fail);
         break;
     }
   };
@@ -152,6 +178,7 @@ export function App() {
     <div ref={panel} className={`panel platform-${snapshot.platform}`}>
       <Header
         snapshot={snapshot}
+        status={status}
         onRefresh={() => ipc.refresh(true).catch(fail)}
         onMore={(event) =>
           showAppMenu(event, snapshot.version, {
@@ -162,6 +189,14 @@ export function App() {
         }
       />
 
+      <ProviderTabs value={provider} onChange={selectProvider} />
+      <p className="provider-caption">
+        {t("tabs.scope", { client: provider === "claude" ? "Claude Code" : vars.client })}
+      </p>
+      {!status.aligned && <p className="provider-caption provider-mismatch">{t("bind.mismatch")}</p>}
+      {provider !== "antigravity" && status.installed && !status.desktopInstalled && (
+        <p className="provider-caption">{t("tabs.cliOnly")}</p>
+      )}
       {snapshot.update.available && (
         <UpdateBanner
           update={snapshot.update.available}
@@ -172,31 +207,35 @@ export function App() {
         />
       )}
 
-      {snapshot.accounts.length === 0 ? (
-        <EmptyState disabled={busy} onAdd={addAccount} />
-      ) : (
-        <main className="account-list">
-          {accounts.map((account) => (
-            <AccountCard
-              key={account.id}
-              account={account}
-              active={account.id === snapshot.activeId}
-              best={account.id === best}
-              disabled={busy || !snapshot.antigravity.installed}
-              onSwitch={() => askSwitch(account)}
-              onReauth={addAccount}
-              onMenu={(event) => accountMenu(event, account)}
-            />
-          ))}
-        </main>
-      )}
-
+      <div className="accounts-panel" id="accounts-panel" role="tabpanel" aria-labelledby={`tab-${provider}`}>
+        {accounts.length === 0 ? (
+          <EmptyState disabled={busy || !status.installed} onAdd={addAccount} client={vars.client} />
+        ) : (
+          <main className="account-list">
+            {accounts.map((account) => (
+              <AccountCard
+                key={account.id}
+                account={account}
+                active={account.id === status.activeId}
+                best={account.id === best}
+                disabled={busy || !status.installed}
+                needsDesktop={provider === "claude" && status.desktopInstalled && !account.desktopReady}
+                onBind={() => setDialog({ kind: "bind", account })}
+                onSwitch={() => askSwitch(account).catch(fail)}
+                onReauth={addAccount}
+                onMenu={(event) => accountMenu(event, account)}
+              />
+            ))}
+          </main>
+        )}
+      </div>
       <Footer
-        snapshot={snapshot}
+        status={status}
+        onImport={() => ipc.importAccount(provider).catch(fail)}
         busy={busy}
         onAdd={addAccount}
-        onRestart={() => askAntigravity("restart")}
-        onStop={() => askAntigravity("stop")}
+        onRestart={() => askClient("restart").catch(fail)}
+        onStop={() => askClient("stop").catch(fail)}
       />
 
       {snapshot.operation.kind !== "idle" ? (
@@ -219,9 +258,17 @@ export function App() {
       ) : dialog?.kind === "switch" ? (
         <ConfirmSheet
           title={t("confirm.switch.title", { email: dialog.account.email })}
-          body={t(snapshot.antigravity.running ? "confirm.switch.body" : "confirm.switch.notRunning")}
-          note={describeProcesses(dialog.processes)}
+          body={t("confirm.switch.body", providerInfo[dialog.account.provider])}
+          note={describeProcesses(dialog.processes, dialog.account.provider)}
           action={t("confirm.switch.action")}
+          onConfirm={confirmDialog}
+          onCancel={closeDialog}
+        />
+      ) : dialog?.kind === "bind" ? (
+        <ConfirmSheet
+          title={t("bind.title")}
+          body={t("bind.body", { email: dialog.account.email })}
+          action={t("footer.import")}
           onConfirm={confirmDialog}
           onCancel={closeDialog}
         />
@@ -229,7 +276,11 @@ export function App() {
         <ConfirmSheet
           title={t("confirm.remove.title", { email: dialog.account.email })}
           body={t("confirm.remove.body")}
-          note={dialog.account.id === snapshot.activeId ? t("confirm.remove.active") : null}
+          note={
+            dialog.account.id === status.activeId
+              ? t("confirm.remove.active", providerInfo[dialog.account.provider])
+              : null
+          }
           action={t("confirm.remove.action")}
           destructive
           onConfirm={confirmDialog}
@@ -237,9 +288,9 @@ export function App() {
         />
       ) : dialog?.kind === "stop" || dialog?.kind === "restart" ? (
         <ConfirmSheet
-          title={t(`confirm.${dialog.kind}.title`)}
-          body={t(`confirm.${dialog.kind}.body`)}
-          note={describeProcesses(dialog.processes)}
+          title={t(`confirm.${dialog.kind}.title`, providerInfo[dialog.provider])}
+          body={t(`confirm.${dialog.kind}.body`, providerInfo[dialog.provider])}
+          note={describeProcesses(dialog.processes, dialog.provider)}
           action={t(`confirm.${dialog.kind}.action`)}
           destructive={dialog.kind === "stop"}
           onConfirm={confirmDialog}

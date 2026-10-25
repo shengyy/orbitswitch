@@ -102,7 +102,7 @@ jobs:
           args: ${{ matrix.args }}
           tagName: v${{ inputs.version }}
           releaseCommitish: ${{ github.sha }}
-          releaseName: AgyOrbit ${{ inputs.version }}
+          releaseName: OrbitSwitch ${{ inputs.version }}
           releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: true
           updaterJsonPreferNsis: true

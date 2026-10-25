@@ -4,6 +4,6 @@ pub mod cloudcode;
 pub mod loopback;
 pub mod oauth;
 
-/// AgyOrbit identifies itself on every Google request. Cloud Code also needs
+/// OrbitSwitch identifies itself on every Google request. Cloud Code also needs
 /// the installed Antigravity's version; its client adds that product token.
-pub const USER_AGENT: &str = concat!("AgyOrbit/", env!("CARGO_PKG_VERSION"));
+pub const USER_AGENT: &str = concat!("OrbitSwitch/", env!("CARGO_PKG_VERSION"));

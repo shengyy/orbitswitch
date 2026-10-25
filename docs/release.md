@@ -44,7 +44,7 @@ browser. The maintainer decides *when*; the agent does the rest.
    them as `release.json` (the updater action uses its API asset URLs):
 
    ```bash
-   gh api 'repos/shengyy/agyorbit/releases?per_page=100' --jq '.[] | select(.tag_name == "vX.Y.Z")' > <tmp>/release.json
+   gh api 'repos/shengyy/orbitswitch/releases?per_page=100' --jq '.[] | select(.tag_name == "vX.Y.Z")' > <tmp>/release.json
    ```
 
    Verify every manifest asset belongs to this tag, both macOS
@@ -57,8 +57,8 @@ browser. The maintainer decides *when*; the agent does the rest.
 4. **Publish.** Write the release notes from the version's `CHANGELOG.md` section, then:
 
    ```bash
-   gh release edit vX.Y.Z --draft=false --latest --title "AgyOrbit X.Y.Z" --notes-file <notes.md>
-   gh api repos/shengyy/agyorbit/releases/latest --jq .tag_name   # must print vX.Y.Z
+   gh release edit vX.Y.Z --draft=false --latest --title "OrbitSwitch X.Y.Z" --notes-file <notes.md>
+   gh api repos/shengyy/orbitswitch/releases/latest --jq .tag_name   # must print vX.Y.Z
    ```
 
    Publishing creates the tag; the website's download buttons follow the latest release automatically.
@@ -97,7 +97,7 @@ bun tauri build --target universal-apple-darwin   # needs both Apple targets: ru
 Verify a locally signed macOS package without launching it or touching your installed app:
 
 ```bash
-AGYORBIT_UPDATE_PACKAGE=<bundle>/macos/AgyOrbit.app.tar.gz cargo test --manifest-path src-tauri/Cargo.toml local_signed_bundle_installs -- --ignored
+ORBITSWITCH_UPDATE_PACKAGE=<bundle>/macos/OrbitSwitch.app.tar.gz cargo test --manifest-path src-tauri/Cargo.toml local_signed_bundle_installs -- --ignored
 ```
 
 The test downloads through loopback, verifies the real signature and version, replaces an isolated
@@ -116,7 +116,7 @@ directories intact; [Rust cache maintenance](../CONTRIBUTING.md#rust-caches) has
 
 ## Website
 
-`site/` is the landing page at <https://shengyy.github.io/agyorbit/>. The `pages` workflow deploys it on
+`site/` is the landing page at <https://shengyy.github.io/orbitswitch/>. The `pages` workflow deploys it on
 every push to `main` that touches `site/` or `assets/`, copying `assets/brand` and `assets/screenshots`
 next to it. The download buttons ask GitHub's API for the latest release and pick its `.dmg` and
 `-setup.exe`, so a new release needs no site change. The site's visual rules are in

@@ -16,8 +16,8 @@ import { t } from "./i18n";
 import { ipc } from "./ipc";
 import type { Account } from "./types";
 
-const REPOSITORY = "https://github.com/shengyy/agyorbit";
-const WEBSITE = "https://shengyy.github.io/agyorbit/";
+const REPOSITORY = "https://github.com/shengyy/orbitswitch";
+const WEBSITE = "https://shengyy.github.io/orbitswitch/";
 
 type Entry = "separator" | { text: string; action?: () => void; enabled?: boolean; checked?: boolean };
 
@@ -57,7 +57,7 @@ export async function showAppMenu(
   const launchAtLogin = await ipc.autostartEnabled().catch(() => false);
   await popup(
     [
-      { text: `AgyOrbit ${version}`, enabled: false },
+      { text: `OrbitSwitch ${version}`, enabled: false },
       {
         text: t(update.checking ? "update.checking" : "menu.checkUpdate"),
         enabled: update.enabled && !update.checking,

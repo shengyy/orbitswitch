@@ -1,8 +1,8 @@
 //! Keychain access through `/usr/bin/security`, exactly like go-keyring.
 //!
 //! Going through the system tool keeps every item's ACL bound to
-//! `/usr/bin/security` instead of AgyOrbit's own (ad-hoc, per-build) code
-//! signature, so neither AgyOrbit updates nor Antigravity trigger keychain
+//! `/usr/bin/security` instead of OrbitSwitch's own (ad-hoc, per-build) code
+//! signature, so neither OrbitSwitch updates nor Antigravity trigger keychain
 //! prompts. Writes are fed through `security -i` on stdin so secrets never
 //! appear in the process list.
 

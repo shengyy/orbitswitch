@@ -1,0 +1,63 @@
+.provider-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  margin: 0 12px 10px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--fill-2);
+}
+.provider-tabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 7px 4px;
+  border: 0;
+  border-radius: 7px;
+  color: var(--text-2);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+.provider-tabs small {
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+.provider-tabs button[aria-selected="true"] {
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
+}
+.provider-tabs button:focus-visible {
+  outline: 2px solid var(--text-2);
+  outline-offset: 1px;
+}
+.provider-caption {
+  margin: 0 18px 10px;
+  font-size: 10px;
+  color: var(--text-3);
+}
+.accounts-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.card-binding {
+  margin: 0 14px 10px;
+  font-size: 10px;
+  color: var(--text-2);
+}
+.card-binding button {
+  font-size: inherit;
+  margin-left: 5px;
+}
+.card-stale {
+  color: var(--meter-low);
+  font-size: 10px;
+}

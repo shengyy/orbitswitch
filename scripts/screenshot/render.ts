@@ -13,8 +13,8 @@ const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const here = import.meta.dir;
 const repo = join(here, "../..");
 const out = join(repo, "assets/screenshots");
-const site = await mkdtemp(join(tmpdir(), "agyorbit-site-"));
-const profile = await mkdtemp(join(tmpdir(), "agyorbit-chrome-"));
+const site = await mkdtemp(join(tmpdir(), "orbitswitch-site-"));
+const profile = await mkdtemp(join(tmpdir(), "orbitswitch-chrome-"));
 
 // 1. Build the real frontend and stage it under a menu bar with the mocked IPC.
 await $`bunx vite build --base ./ --outDir ${site} --emptyOutDir`.cwd(repo).quiet();
@@ -127,7 +127,7 @@ async function shoot(scene: string, scheme: "light" | "dark", ready: string, fil
 }
 
 // 3. Hero (the list) and flow (confirm + progress) in both appearances, at 3x and 2x.
-const work = await mkdtemp(join(tmpdir(), "agyorbit-shots-"));
+const work = await mkdtemp(join(tmpdir(), "orbitswitch-shots-"));
 const publish = async (source: string, name: string) => {
   await $`cp ${source} ${join(out, `${name}@3x.png`)}`.quiet();
   await $`magick ${source} -resize 66.6667% ${join(out, `${name}.png`)}`.quiet();
@@ -136,6 +136,10 @@ try {
   for (const scheme of ["light", "dark"] as const) {
     await shoot("list", scheme, ".card .tag-best", join(work, "hero.png"));
     await publish(join(work, "hero.png"), `hero-${scheme}`);
+    for (const provider of ["codex", "claude"]) {
+      await shoot(`list&provider=${provider}`, scheme, ".card .tag-best", join(work, `${provider}.png`));
+      await publish(join(work, `${provider}.png`), `${provider}-${scheme}`);
+    }
     await shoot("confirm", scheme, ".sheet h2", join(work, "confirm.png"));
     await shoot("switching", scheme, ".steps .now", join(work, "switching.png"));
     await $`magick ${join(work, "confirm.png")} ${join(work, "switching.png")} -background none +append ${join(work, "flow.png")}`.quiet();

@@ -1,104 +1,52 @@
-<p align="center">
-  <img src="assets/brand/app-icon.svg" width="112" alt="AgyOrbit 图标">
-</p>
+<p align="center"><img src="assets/brand/app-icon.svg" width="104" alt="OrbitSwitch 图标"></p>
+<h1 align="center">OrbitSwitch</h1>
+<p align="center">切账号，看额度，继续工作。</p>
+<p align="center"><a href="README.md">English</a> · <a href="https://shengyy.github.io/orbitswitch/">官网</a> · <a href="https://github.com/shengyy/orbitswitch/releases">版本下载</a></p>
 
-<h1 align="center">AgyOrbit</h1>
+一个精致小巧的菜单栏 / 系统托盘工具，管理**你自己的** Antigravity、Codex 和 Claude 账号。
+三个 Tab，用同一套方式查看订阅套餐、剩余额度与重置时间。
 
-<p align="center">
-  多个 Google Antigravity 账号，点一下就切换。<br>
-  在菜单栏看清每个账号的额度，不用退出重登。
-</p>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.png"><img src="assets/screenshots/hero-light.png" width="640" alt="OrbitSwitch 三平台标签及虚构的订阅账号"></picture>
 
-<p align="center">
-  <a href="README.md">English</a> | <strong>简体中文</strong>
-</p>
+| Tab | 账号切换 | 订阅额度 |
+|---|---|---|
+| Gemini | Antigravity 桌面端 + `agy` CLI | Google 模型分组 |
+| ChatGPT | Codex 桌面端 + CLI | Codex 限额窗口及额外额度池 |
+| Claude | 关联登录后的 Claude Desktop + Claude Code | Claude 共享窗口及模型专属窗口 |
 
-<p align="center">
-  <a href="https://github.com/shengyy/agyorbit/actions/workflows/ci.yml"><img src="https://github.com/shengyy/agyorbit/actions/workflows/ci.yml/badge.svg?event=pull_request" alt="CI"></a>
-  <a href="https://github.com/shengyy/agyorbit/releases"><img src="https://img.shields.io/github/v/release/shengyy/agyorbit?include_prereleases&sort=semver" alt="Release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-</p>
+切换 Tab 只改变视图。切换账号前会确认要结束的客户端，写入后校验登录，失败时恢复原凭据，
+然后打开已安装的桌面应用；CLI 会话需要手动重开。额度刷新失败会保留旧数据并标明过期，
+未返回的额度窗口不会猜测。这些是编程客户端额度，不代表 Gemini 或 ChatGPT 网页聊天额度。
 
-<p align="center"><a href="https://shengyy.github.io/agyorbit/"><strong>官网</strong></a> · <a href="https://github.com/shengyy/agyorbit/releases/latest"><strong>下载</strong></a></p>
+三平台实现**尚未发版**，已发布的 0.1.x 安装包仍是仅支持 Antigravity 的 AgyOrbit。
+Codex、Claude 的身份与额度读取，以及 Claude Desktop 关联身份验证已在 macOS 实机通过；
+新增适配器的真实账号切换、浏览器添加登录仍**未验证**。详见[验证范围](docs/status.md)。
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.png">
-    <img src="assets/screenshots/hero-light.png" width="640" alt="AgyOrbit 菜单栏弹出面板，列出三个账号及各自的 Gemini 和 Claude 额度">
-  </picture>
-</p>
+## 安装与使用
 
----
+支持 macOS 26+、Windows 10/11 x64。请安装需要管理的官方客户端；添加 Codex 或 Claude 账号
+还需要对应的官方 CLI。从 [Releases](https://github.com/shengyy/orbitswitch/releases) 获取适用构建。
 
-在 [Antigravity](https://antigravity.google) 里用多个 Google 账号时，每次切换都要退出、重新登录、再等待，
-而且你不知道哪个账号还剩 Claude 或 Gemini 额度。AgyOrbit 常驻 macOS 菜单栏或 Windows 通知区域，把这两件事一起解决。
+macOS 使用 ad-hoc 签名，尚未经过 Apple 公证。如果系统拦截可信来源的安装包，可右键应用选择
+**打开**，或运行 `xattr -dr com.apple.quarantine /Applications/OrbitSwitch.app`。
+Windows 安装包未签名，SmartScreen 可能需要选择 **更多信息 → 仍要运行**。
 
-## 功能
+1. 从菜单栏或系统托盘打开 OrbitSwitch，选择平台 Tab。
+2. **添加账号**打开官方登录，不改变当前客户端账号；**导入当前**保存这台电脑上已登录的账号。
+3. Claude Desktop 需要先与 Claude Code 登录同一账号和工作区，再导入。卡片上的
+   **关联桌面**会说明这一步骤。
+4. 选择另一个账号，核对受影响进程，确认后切换。
 
-- **所有账号一眼看清。** 每个账号的 Gemini 和 Claude（Opus、Sonnet、GPT-OSS）额度，5 小时窗口与本周窗口并排显示，
-  附重置时间；余量最多、值得切过去的账号会被标出来。
-- **确认一次即可切换。** AgyOrbit 关闭 Antigravity 和 `agy` 命令行，把 Antigravity 登录到所选账号，校验无误后重新打开。
-  写入或校验新登录失败时，会恢复原来的登录。
-- **在浏览器里添加账号。** 普通的 Google 登录页，不用在 Antigravity 里退出；Antigravity 当前已登录的账号会自动纳入。
-- **重启或结束 Antigravity** 也在同一处完成，确认框会列出将要关闭的进程。
-- **原生体验。** macOS 上是 Liquid Glass 弹出面板，支持浅色 / 深色模式、英文和简体中文。
-- **隐私。** 令牌只存在系统钥匙串里，只发给 Google。没有服务器，没有统计上报。
+应用菜单提供开机启动、查看日志、检查更新和退出。应用更新只重启 OrbitSwitch。
+改名保留原应用标识及账号存储位置。
 
-## 系统要求
+## 凭据留在本机
 
-| 平台 | 状态 |
-|---|---|
-| macOS 26 及以上（Apple 芯片与 Intel） | 支持 |
-| Windows 10 / 11 x64 | 实验性：CI 可构建，尚未在真实安装上验证（[状态](docs/status.md)） |
+凭据只在 Rust 后端与系统凭据库中流转，关联的 Claude 桌面会话也保存在系统凭据库。
+前端只接收账号信息和额度快照，不接触令牌或 Cookie。OrbitSwitch 仅访问官方认证 / 额度服务
+及 GitHub 更新服务；没有账号服务器、模型代理、自动切号或遥测。详见[安全说明](SECURITY.md)。
 
-需要已安装 Antigravity：AgyOrbit 从本机安装中读取登录配置。
+开发说明：[CONTRIBUTING.md](CONTRIBUTING.md)。产品规则：[PRODUCT.md](PRODUCT.md)。
+实现与参考项目：[原生客户端适配](docs/native-integrations.md)。
 
-## 安装
-
-从 [Releases](https://github.com/shengyy/agyorbit/releases) 下载最新的 `.dmg`（macOS）或 `-setup.exe`（Windows）。
-
-安装包暂未使用 Apple Developer ID 或 Windows 代码签名证书。macOS 首次打开请右键 → **打开**，或执行
-`xattr -dr com.apple.quarantine /Applications/AgyOrbit.app`；Windows 在 SmartScreen 中选择 **更多信息 → 仍要运行**。
-
-AgyOrbit 在启动时和每天自动检查更新。点击新版提示，或选择 **⋯ → 检查更新**，查看更新内容后点
-**更新并重启**。只重启 AgyOrbit，Antigravity 继续运行，账号和设置会保留。如果旧版没有「检查更新」菜单，
-需要先退出 AgyOrbit，用最新安装包覆盖一次。
-
-从源码构建见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
-## 使用
-
-1. 启动 AgyOrbit 并点击图标，Antigravity 当前登录的账号会标为 **当前**。
-2. 点 **添加账号**，浏览器会打开 Google 登录页，选择另一个账号并允许访问。
-3. 点击某个账号（或它的 **切换** 按钮）并确认，Antigravity 会以该账号重新启动。
-4. 右键账号可重新授权、复制邮箱或移除；顶部 `⋯` 菜单里有检查更新、开机启动、日志和退出。
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/flow-dark.png">
-    <img src="assets/screenshots/flow-light.png" width="860" alt="切换前的确认框，以及切换进度">
-  </picture>
-</p>
-
-## 工作原理
-
-Antigravity 把登录凭据存在系统钥匙串（另有一份回退文件）。AgyOrbit 使用从本机安装中读取的 Antigravity 自有 OAuth client
-完成浏览器登录，因此拿到的凭据与 Antigravity 自己登录时存下的完全一致；切换就是在 Antigravity 关闭期间改写这份凭据。
-额度数据来自 IDE 使用的同一组 Cloud Code 接口。细节及验证版本见
-[docs/antigravity-integration.md](docs/antigravity-integration.md)。
-
-## 隐私与合理使用
-
-AgyOrbit 只负责切换官方 Antigravity 应用使用的是 **你自己的** 哪个账号，除 Google 外不与任何服务通信，没有服务器和统计上报。
-它永远不做的事（例如代理模型流量、为绕过额度自动轮换账号）列在[非目标](PRODUCT.md#non-goals)；存储与发送的具体内容见
-[SECURITY.md](SECURITY.md)。请在 Google 条款范围内使用。
-
-AgyOrbit 是独立项目，与 Google 无隶属或背书关系。"Antigravity" 与 "Gemini" 是 Google LLC 的商标。
-
-## 参与贡献
-
-欢迎 issue 和 PR，目前最需要的是 Windows 上的实机验证。先读 [CONTRIBUTING.md](CONTRIBUTING.md)、产品规则 [PRODUCT.md](PRODUCT.md) 和[文档](docs/README.md)。
-
-## 许可证
-
-[MIT](LICENSE)
+MIT 开源。独立于 Google、OpenAI 和 Anthropic，相关产品名归各自所有者所有。

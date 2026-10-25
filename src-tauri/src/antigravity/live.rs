@@ -3,7 +3,7 @@
 //! Antigravity's language server stores it with go-keyring under service
 //! `gemini`, account `antigravity`, and mirrors it to
 //! `~/.gemini/jetski-standalone-oauth-token`, which it reads when the keyring
-//! times out. AgyOrbit reads the keyring first and always writes both, so the
+//! times out. OrbitSwitch reads the keyring first and always writes both, so the
 //! two copies never disagree about the active account.
 
 use std::fs;

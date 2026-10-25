@@ -14,17 +14,16 @@ function Meter({ label, window }: { label: string; window: QuotaWindow | null })
       </div>
     );
   }
-  const used = window.remaining < 1;
-  const resetsIn = used ? untilReset(window.resetAt) : null;
+  const resetsIn = untilReset(window.resetAt);
   const tooltip =
     resetsIn && window.resetAt
       ? `${t("quota.resetsAt", { time: clock(window.resetAt) })} · ${t("quota.resetsIn", { time: resetsIn })}`
-      : t("quota.unused");
+      : t("quota.unknownReset");
   return (
     <div className={`meter meter-${severity(window.remaining)}`} title={tooltip}>
       <span className="meter-label">{label}</span>
       <span className="meter-track">
-        <span className="meter-fill" style={{ width: `${Math.max(window.remaining * 100, 2)}%` }} />
+        <span className="meter-fill" style={{ width: `${window.remaining * 100}%` }} />
       </span>
       <span className="meter-value">{percent(window.remaining)}</span>
     </div>
@@ -39,8 +38,13 @@ export function QuotaRow({ group }: { group: QuotaGroup }) {
       title={group.models.length ? t("quota.models", { list: group.models.join(", ") }) : undefined}
     >
       <span className="quota-group">{group.label}</span>
-      <Meter label={t("quota.fiveHour")} window={group.fiveHour} />
-      <Meter label={t("quota.weekly")} window={group.weekly} />
+      <div className="quota-windows">
+        {group.fiveHour && <Meter label={t("quota.fiveHour")} window={group.fiveHour} />}
+        {group.weekly && <Meter label={t("quota.weekly")} window={group.weekly} />}
+        {group.extra.map((window) => (
+          <Meter key={`${window.label}-${window.durationMinutes}`} label={window.label} window={window} />
+        ))}
+      </div>
     </div>
   );
 }

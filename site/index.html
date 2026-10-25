@@ -3,212 +3,670 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AgyOrbit — switch Antigravity accounts from the menu bar</title>
+    <title>OrbitSwitch — Switch accounts, see quota, stay in flow</title>
     <meta
       name="description"
-      content="See every Google Antigravity account's 5-hour and weekly quota from the menu bar, and switch accounts with one confirmed click. Free and open source for macOS and Windows."
+      content="Menu bar and system tray account switcher for Gemini (Antigravity), ChatGPT (Codex), and Claude (Claude Code). Check subscription plans, 5-hour and weekly coding quota, and switch your own accounts with one confirmed click."
     />
-    <meta property="og:title" content="AgyOrbit" />
-    <meta property="og:description" content="Every Antigravity account, one click apart." />
-    <meta property="og:image" content="https://shengyy.github.io/agyorbit/assets/screenshots/hero-light.png" />
-    <meta property="og:url" content="https://shengyy.github.io/agyorbit/" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:title" content="OrbitSwitch — Switch accounts, see quota, stay in flow" />
+    <meta
+      property="og:description"
+      content="Manage multiple personal accounts across Antigravity, Codex, and Claude Code from the macOS menu bar and Windows system tray."
+    />
+    <meta property="og:image" content="https://shengyy.github.io/orbitswitch/assets/brand/app-icon.svg" />
+    <meta property="og:url" content="https://shengyy.github.io/orbitswitch/" />
+    <meta name="twitter:card" content="summary" />
     <meta name="color-scheme" content="light dark" />
+    <link rel="canonical" href="https://shengyy.github.io/orbitswitch/" />
     <link rel="icon" href="assets/brand/app-icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="demo.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="download.js" defer></script>
+    <script src="demo.js" defer></script>
   </head>
   <body>
     <header class="nav">
       <a class="brand" href="./">
-        <img src="assets/brand/app-icon.svg" alt="" width="28" height="28" />
-        AgyOrbit
+        <img src="assets/brand/app-icon.svg" alt="" width="26" height="26" />
+        <span class="brand-title">OrbitSwitch</span>
+        <span class="brand-badge">MIT</span>
       </a>
-      <nav>
-        <a href="#features">Features</a>
-        <a href="#install">Install</a>
-        <a href="#faq">FAQ</a>
-        <a class="github" href="https://github.com/shengyy/agyorbit">GitHub</a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#platforms" data-i18n="nav.platforms">Platforms</a>
+        <a href="#workflow" data-i18n="nav.workflow">How it works</a>
+        <a href="#boundaries" data-i18n="nav.boundaries">Privacy</a>
+        <a href="#install" data-i18n="nav.install">Install</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
       </nav>
+      <div class="nav-actions">
+        <button
+          type="button"
+          id="lang-toggle"
+          class="lang-btn"
+          data-i18n="nav.lang"
+          aria-label="切换网站语言为简体中文"
+        >
+          中文
+        </button>
+        <a class="github-link" href="https://github.com/shengyy/orbitswitch">
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+            />
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
     </header>
 
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">For Google Antigravity</p>
-          <h1>Every account,<br />one click apart.</h1>
-          <p class="lede">
-            AgyOrbit lives in your menu bar, shows each Antigravity account's 5-hour and weekly quota, and switches
-            the IDE to another account without signing out.
+          <p class="eyebrow">
+            <span class="eyebrow-dot" aria-hidden="true"></span>
+            <span data-i18n="hero.eyebrow">Three platforms. One small switcher.</span>
           </p>
+          <h1 data-i18n="hero.title">Switch accounts. See quota. Stay in flow.</h1>
+          <p class="lede" data-i18n="hero.lede">
+            OrbitSwitch lives in your macOS menu bar and Windows system tray across three tabs — Gemini (Antigravity),
+            ChatGPT (Codex), and Claude (Claude Code). Check subscription plans, 5-hour and weekly coding quota, and
+            reset times across your own accounts, then switch after confirmation.
+          </p>
+
+          <div class="hero-pillars" role="list">
+            <div class="pillar" role="listitem">
+              <span class="pillar-num">01</span>
+              <div>
+                <strong data-i18n="hero.pillar1.title">Switch accounts</strong>
+                <span data-i18n="hero.pillar1.desc"
+                  >Add your accounts. Link their clients. Switch with confirmation.</span
+                >
+              </div>
+            </div>
+            <div class="pillar" role="listitem">
+              <span class="pillar-num">02</span>
+              <div>
+                <strong data-i18n="hero.pillar2.title">See quota</strong>
+                <span data-i18n="hero.pillar2.desc"
+                  >5-hour and weekly windows side by side, with reset timers and Most left tags.</span
+                >
+              </div>
+            </div>
+            <div class="pillar" role="listitem">
+              <span class="pillar-num">03</span>
+              <div>
+                <strong data-i18n="hero.pillar3.title">Stay in flow</strong>
+                <span data-i18n="hero.pillar3.desc"
+                  >Checks target auth first, names affected processes, and rolls back if verification fails.</span
+                >
+              </div>
+            </div>
+          </div>
+
           <div class="downloads">
-            <a class="button primary" data-download="mac" href="https://github.com/shengyy/agyorbit/releases/latest">
+            <a class="button primary" data-download="mac" href="https://github.com/shengyy/orbitswitch/releases">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v7.5m0 0L5 7m3 3 3-3M3 12.5h10" /></svg>
-              <span>Download for macOS</span>
+              <span data-i18n="hero.dlMac">Download for macOS</span>
+              <small>.dmg</small>
             </a>
-            <a class="button" data-download="win" href="https://github.com/shengyy/agyorbit/releases/latest">
+            <a class="button" data-download="win" href="https://github.com/shengyy/orbitswitch/releases">
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v7.5m0 0L5 7m3 3 3-3M3 12.5h10" /></svg>
-              <span>Windows <small>beta</small></span>
+              <span data-i18n="hero.dlWin">Download for Windows</span>
+              <small>.exe</small>
+            </a>
+            <a class="button ghost" href="https://github.com/shengyy/orbitswitch/releases">
+              <span data-i18n="hero.dlReleases">Releases</span>
+              <span aria-hidden="true">↗</span>
             </a>
           </div>
-          <p class="meta">
-            <span data-version>Latest release</span> · macOS 26+ (Apple silicon &amp; Intel) · Windows 10/11 ·
-            Free &amp; open source
-          </p>
+
+          <div class="meta-box">
+            <p class="meta">
+              <span class="version-pill" data-version>GitHub Releases</span>
+              <span>·</span>
+              <span data-i18n="hero.spec"
+                >macOS 26+ (Apple silicon &amp; Intel) · Windows 10/11 x64 · MIT Open Source</span
+              >
+            </p>
+            <p class="release-note" data-release-note>
+              Direct installers (.dmg &amp; -setup.exe) resolve from the latest OrbitSwitch release on GitHub Releases.
+            </p>
+          </div>
         </div>
-        <picture class="hero-shot">
-          <source
-            media="(prefers-color-scheme: dark)"
-            srcset="assets/screenshots/hero-dark.png 1328w, assets/screenshots/hero-dark@3x.png 1992w"
-            sizes="(max-width: 860px) 92vw, calc(22vw + 360px)"
-          />
-          <img
-            src="assets/screenshots/hero-light.png"
-            srcset="assets/screenshots/hero-light.png 1328w, assets/screenshots/hero-light@3x.png 1992w"
-            sizes="(max-width: 860px) 92vw, calc(22vw + 360px)"
-            width="664"
-            height="688"
-            alt="The AgyOrbit popover under the menu bar, listing three accounts with their Gemini and Claude quotas"
-          />
-        </picture>
+
+        <div class="hero-stage-col">
+          <div class="stage-frame" aria-label="Interactive OrbitSwitch popover preview">
+            <div class="stage-menubar" aria-hidden="true">
+              <span class="stage-workspace">~/workspace — agy · codex · claude</span>
+              <div class="stage-menubar-right">
+                <span class="stage-tray-pill">
+                  <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">
+  <path fill="currentColor" fill-rule="evenodd" d="M 20.97 2.28 A 16 16 0 0 1 33.1 23.29 A 1.24 1.24 0 0 1 31.31 23.95 L 28.86 22.53 A 1.24 1.24 0 0 1 28.29 21.11 A 10.75 10.75 0 0 0 20.46 7.53 A 1.24 1.24 0 0 1 19.5 6.33 L 19.5 3.5 A 1.24 1.24 0 0 1 20.97 2.28 Z M 30.13 28.43 A 16 16 0 0 1 5.87 28.43 A 1.24 1.24 0 0 1 6.19 26.55 L 8.64 25.14 A 1.24 1.24 0 0 1 10.16 25.36 A 10.75 10.75 0 0 0 25.84 25.36 A 1.24 1.24 0 0 1 27.36 25.14 L 29.81 26.55 A 1.24 1.24 0 0 1 30.13 28.43 Z M 2.9 23.29 A 16 16 0 0 1 15.03 2.28 A 1.24 1.24 0 0 1 16.5 3.5 L 16.5 6.33 A 1.24 1.24 0 0 1 15.54 7.53 A 10.75 10.75 0 0 0 7.71 21.11 A 1.24 1.24 0 0 1 7.14 22.53 L 4.69 23.95 A 1.24 1.24 0 0 1 2.9 23.29 Z M 17.28 12.77 L 23.15 11.95 A 2.5 2.5 0 0 1 25.61 15.75 L 22.48 20.79 A 5.28 5.28 0 1 1 17.28 12.77 Z M 20.18 18 A 2.18 2.18 0 1 0 15.82 18 A 2.18 2.18 0 1 0 20.18 18 Z"/>
+</svg>
+
+                </span>
+                <span class="stage-clock">Oct 25 · 15:48</span>
+              </div>
+            </div>
+
+            <div id="demo-popover" class="demo-popover">
+              <header class="demo-header">
+                <img src="assets/brand/app-icon.svg" alt="" width="22" height="22" class="demo-brand-icon" />
+                <div class="demo-brand-meta">
+                  <div class="demo-brand-name">OrbitSwitch</div>
+                  <div class="demo-brand-status">
+                    <span class="demo-status-dot"></span>
+                    <span id="demo-status-text">Antigravity is running · Updated 1m ago</span>
+                  </div>
+                </div>
+                <button type="button" id="demo-refresh-btn" class="demo-icon-btn" aria-label="Refresh quotas">
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M13.5 8a5.5 5.5 0 1 1-1.4-3.67M13.5 2.5v2.6h-2.6"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </header>
+
+              <div class="demo-tabs" role="tablist" aria-label="AI coding platforms">
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-gemini"
+                  class="demo-tab is-active"
+                  aria-selected="true"
+                  aria-controls="demo-account-list"
+                  data-demo-tab="gemini"
+                >
+                  <span class="demo-tab-title">Gemini</span>
+                  <span class="demo-tab-sub">Antigravity</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-chatgpt"
+                  class="demo-tab"
+                  aria-selected="false"
+                  aria-controls="demo-account-list"
+                  tabindex="-1"
+                  data-demo-tab="chatgpt"
+                >
+                  <span class="demo-tab-title">ChatGPT</span>
+                  <span class="demo-tab-sub">Codex</span>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-claude"
+                  class="demo-tab"
+                  aria-selected="false"
+                  aria-controls="demo-account-list"
+                  tabindex="-1"
+                  data-demo-tab="claude"
+                >
+                  <span class="demo-tab-title">Claude</span>
+                  <span class="demo-tab-sub">Claude Code</span>
+                </button>
+              </div>
+
+              <div
+                id="demo-account-list"
+                class="demo-account-list"
+                role="tabpanel"
+                aria-labelledby="tab-gemini"
+              >
+                <article class="demo-card is-current" data-account-card="ada">
+                  <div class="demo-card-head">
+                    <button type="button" class="demo-card-identity" disabled>
+                      <span class="demo-avatar" style="--hue: 162" aria-hidden="true">A</span>
+                      <span class="demo-card-title">
+                        <span class="demo-name">Ada Lovelace</span>
+                        <span class="demo-plan demo-plan-pro">PRO</span>
+                        <span class="demo-tag demo-tag-current">Current</span>
+                      </span>
+                      <span class="demo-email">ada@example.com</span>
+                    </button>
+                  </div>
+                  <div class="demo-card-quota">
+                    <div class="demo-quota-row">
+                      <span class="demo-quota-group">Gemini</span>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">5h</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 62%"></span>
+                        </span>
+                        <span class="demo-meter-value">62%</span>
+                      </div>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">Week</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 88%"></span>
+                        </span>
+                        <span class="demo-meter-value">88%</span>
+                      </div>
+                    </div>
+                    <div class="demo-quota-row">
+                      <span class="demo-quota-group">Claude</span>
+                      <div class="demo-meter demo-meter-critical">
+                        <span class="demo-meter-label">5h</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 7%"></span>
+                        </span>
+                        <span class="demo-meter-value">7%</span>
+                      </div>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">Week</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 41%"></span>
+                        </span>
+                        <span class="demo-meter-value">41%</span>
+                      </div>
+                    </div>
+                    <div class="demo-card-hint">Claude 5h · resets in 1h 12m</div>
+                  </div>
+                </article>
+
+                <article class="demo-card is-switchable" data-account-card="grace">
+                  <div class="demo-card-head">
+                    <button type="button" class="demo-card-identity" data-switch-account="grace">
+                      <span class="demo-avatar" style="--hue: 48" aria-hidden="true">G</span>
+                      <span class="demo-card-title">
+                        <span class="demo-name">Grace Hopper</span>
+                        <span class="demo-plan demo-plan-pro">PRO</span>
+                        <span class="demo-tag demo-tag-best">Most left</span>
+                      </span>
+                      <span class="demo-email">grace@example.com</span>
+                    </button>
+                    <span class="demo-card-action-hint" aria-hidden="true">Switch →</span>
+                  </div>
+                  <div class="demo-card-quota">
+                    <div class="demo-quota-row">
+                      <span class="demo-quota-group">Gemini</span>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">5h</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 100%"></span>
+                        </span>
+                        <span class="demo-meter-value">100%</span>
+                      </div>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">Week</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 97%"></span>
+                        </span>
+                        <span class="demo-meter-value">97%</span>
+                      </div>
+                    </div>
+                    <div class="demo-quota-row">
+                      <span class="demo-quota-group">Claude</span>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">5h</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 94%"></span>
+                        </span>
+                        <span class="demo-meter-value">94%</span>
+                      </div>
+                      <div class="demo-meter demo-meter-ok">
+                        <span class="demo-meter-label">Week</span>
+                        <span class="demo-meter-track">
+                          <span class="demo-meter-fill" style="width: 83%"></span>
+                        </span>
+                        <span class="demo-meter-value">83%</span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <footer class="demo-footer">
+                <button type="button" id="demo-add-btn" class="demo-footer-btn demo-footer-add">
+                  <span aria-hidden="true">+</span>
+                  <span id="demo-add-label">Add account</span>
+                </button>
+                <span class="demo-footer-spacer"></span>
+                <button type="button" class="demo-footer-btn" data-demo-scene="confirm">
+                  <span id="demo-restart-label">Restart</span>
+                </button>
+                <button type="button" class="demo-footer-btn" data-demo-scene="confirm">
+                  <span id="demo-quit-label">Quit</span>
+                </button>
+              </footer>
+
+              <div id="demo-sheet-layer" class="demo-sheet-layer" hidden></div>
+            </div>
+          </div>
+
+          <div class="stage-controls">
+            <div class="scene-pills" role="group" aria-label="Preview states">
+              <button
+                type="button"
+                class="scene-pill is-active"
+                data-demo-scene="list"
+                aria-pressed="true"
+                data-i18n="demo.sceneList"
+              >
+                Accounts &amp; quota
+              </button>
+              <button
+                type="button"
+                class="scene-pill"
+                data-demo-scene="confirm"
+                aria-pressed="false"
+                data-i18n="demo.sceneConfirm"
+              >
+                Confirm switch
+              </button>
+              <button
+                type="button"
+                class="scene-pill"
+                data-demo-scene="adding"
+                aria-pressed="false"
+                data-i18n="demo.sceneAdd"
+              >
+                Browser sign-in
+              </button>
+            </div>
+            <p class="stage-caption" data-i18n="demo.badge">
+              Interactive UI demo · Fictional @example.com accounts &amp; sample quota data
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section id="features" class="features">
-        <h2>Made for people with more than one account</h2>
-        <div class="grid">
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V9m5 9V5m5 13v-6m5 6V8" /></svg>
-            <h3>Quota at a glance</h3>
-            <p>Gemini and Claude quotas for every account, the 5-hour and weekly windows side by side, with reset times.</p>
-          </article>
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" /></svg>
-            <h3>Knows where to go next</h3>
-            <p>When your account runs low, the one with the most quota left is marked, ready to switch to.</p>
-          </article>
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 4l3 3-3 3M20 7H8a4 4 0 0 0-4 4M7 20l-3-3 3-3M4 17h12a4 4 0 0 0 4-4" /></svg>
-            <h3>Switch safely</h3>
-            <p>Confirms first, closes Antigravity and the agy CLI, verifies the new sign-in, and rolls back if anything fails.</p>
-          </article>
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.3 2.4 3.5 5.2 3.5 8.5s-1.2 6.1-3.5 8.5c-2.3-2.4-3.5-5.2-3.5-8.5S9.7 5.9 12 3.5z" /></svg>
-            <h3>Add accounts in the browser</h3>
-            <p>A regular Google sign-in page. No signing out of Antigravity, and the account you already use is picked up.</p>
-          </article>
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5" /><path d="M8 20.5h8" /></svg>
-            <h3>Feels native</h3>
-            <p>A Liquid Glass popover on macOS and a compact tray window on Windows, in light and dark.</p>
-          </article>
-          <article>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /></svg>
-            <h3>Private by design</h3>
-            <p>Tokens stay in your system keychain and only ever go to Google. No server, no analytics, no telemetry.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="flow">
-        <h2>Switching, start to finish</h2>
-        <p class="section-lede">
-          Pick an account, confirm, and AgyOrbit does the rest: it checks the account's authorization, closes
-          Antigravity, signs it in to the new account and opens it again.
-        </p>
-        <picture>
-          <source
-            media="(prefers-color-scheme: dark)"
-            srcset="assets/screenshots/flow-dark.png 2656w, assets/screenshots/flow-dark@3x.png 3984w"
-            sizes="(max-width: 1240px) calc(100vw - 32px), calc(39.6vw + 648px)"
-          />
+      <section id="platforms" class="platforms">
+        <div class="section-head">
+          <div>
+            <p class="section-eyebrow" data-i18n="platforms.eyebrow">Three tabs · Three coding environments</p>
+            <h2 data-i18n="platforms.title">One surface across your AI coding tools.</h2>
+            <p class="section-lede" data-i18n="platforms.lede">
+              Each primary tab manages a distinct local coding environment and its CLI. OrbitSwitch reads and displays
+              the coding quota windows reported by each tool — never conflating them with consumer web chat limits.
+            </p>
+          </div>
           <img
-            src="assets/screenshots/flow-light.png"
-            srcset="assets/screenshots/flow-light.png 2656w, assets/screenshots/flow-light@3x.png 3984w"
-            sizes="(max-width: 1240px) calc(100vw - 32px), calc(39.6vw + 648px)"
-            width="1328"
-            height="688"
-            alt="A confirmation sheet before switching, and the switch progress steps"
+            src="assets/brand/orbit-system.svg"
+            alt=""
+            width="240"
+            height="80"
+            class="orbit-diagram"
             loading="lazy"
           />
-        </picture>
+        </div>
+
+        <div class="platform-grid">
+          <article class="platform-card">
+            <div class="platform-top">
+              <span class="platform-index">TAB 01</span>
+              <span class="status-tag status-tag-verified" data-i18n="platforms.gemini.status"
+                >macOS verified · Windows in CI</span
+              >
+            </div>
+            <h3>Gemini <span class="platform-arrow">→</span> Antigravity</h3>
+            <p class="platform-sub" data-i18n="platforms.gemini.sub">Google Antigravity IDE &amp; agy CLI</p>
+            <div class="platform-badges">
+              <code>Antigravity.app</code>
+              <code>agy</code>
+              <span class="tier-chip">PRO · ULTRA · FREE</span>
+            </div>
+            <ul class="platform-points">
+              <li data-i18n="platforms.gemini.p1">
+                Adopts your active Antigravity sign-in automatically and adds further Google accounts in the browser.
+              </li>
+              <li data-i18n="platforms.gemini.p2">
+                Shows 5-hour and weekly remaining share for Gemini and Claude/GPT model groups with reset times.
+              </li>
+              <li data-i18n="platforms.gemini.p3">
+                Confirms first, closes Antigravity &amp; agy CLI, verifies the new sign-in, and rolls back on failure.
+              </li>
+            </ul>
+          </article>
+
+          <article class="platform-card">
+            <div class="platform-top">
+              <span class="platform-index">TAB 02</span>
+              <span class="status-tag status-tag-wip" data-i18n="platforms.chatgpt.status"
+                >Identity & quota verified · switching beta</span
+              >
+            </div>
+            <h3>ChatGPT <span class="platform-arrow">→</span> Codex</h3>
+            <p class="platform-sub" data-i18n="platforms.chatgpt.sub">OpenAI Codex desktop &amp; codex CLI</p>
+            <div class="platform-badges">
+              <code>Codex</code>
+              <code>codex</code>
+              <span class="tier-chip">PLUS · PRO</span>
+            </div>
+            <ul class="platform-points">
+              <li data-i18n="platforms.chatgpt.p1">
+                Tracks multiple personal OpenAI accounts with ChatGPT Plus or Pro subscriptions used for Codex.
+              </li>
+              <li data-i18n="platforms.chatgpt.p2">
+                Displays 5-hour and weekly coding quota windows and reset timers, highlighting low headroom.
+              </li>
+              <li data-i18n="platforms.chatgpt.p3">
+                Switches local Codex desktop and codex CLI credentials only after explicit user confirmation.
+              </li>
+            </ul>
+          </article>
+
+          <article class="platform-card">
+            <div class="platform-top">
+              <span class="platform-index">TAB 03</span>
+              <span class="status-tag status-tag-wip" data-i18n="platforms.claude.status"
+                >Desktop binding verified · switching beta</span
+              >
+            </div>
+            <h3>Claude <span class="platform-arrow">→</span> Claude Code</h3>
+            <p class="platform-sub" data-i18n="platforms.claude.sub">Anthropic Claude Code &amp; claude CLI</p>
+            <div class="platform-badges">
+              <code>Claude Code</code>
+              <code>claude</code>
+              <span class="tier-chip">PRO · MAX</span>
+            </div>
+            <ul class="platform-points">
+              <li data-i18n="platforms.claude.p1">
+                Manages multiple personal Claude Pro and Max accounts, marking the current and highest-headroom account.
+              </li>
+              <li data-i18n="platforms.claude.p2">
+                Shows 5-hour and weekly model windows (Sonnet &amp; Opus) alongside exact reset countdowns.
+              </li>
+              <li data-i18n="platforms.claude.p3">
+                Confirms before updating local Claude Code and desktop credentials, preserving prior state on error.
+              </li>
+            </ul>
+          </article>
+        </div>
+
+        <aside class="quota-disclaimer" aria-label="Quota boundary note">
+          <div class="disclaimer-icon" aria-hidden="true">!</div>
+          <div>
+            <strong data-i18n="platforms.quotaNote.title">Coding tool quota ≠ consumer web chat quota</strong>
+            <p data-i18n="platforms.quotaNote.body">
+              OrbitSwitch displays the rate-limit windows reported by Antigravity, Codex, and Claude Code. Usage on
+              consumer web interfaces (such as gemini.google.com or chatgpt.com) follows separate product rules and is
+              not equivalent to coding client quota.
+            </p>
+          </div>
+        </aside>
       </section>
 
-      <section id="install" class="install">
-        <h2>Install</h2>
-        <ol>
+      <section id="workflow" class="workflow">
+        <div class="section-head">
+          <div>
+            <p class="section-eyebrow" data-i18n="workflow.eyebrow">Deliberate switching sequence</p>
+            <h2 data-i18n="workflow.title">Confirmed by you. Protected by rollback.</h2>
+            <p class="section-lede" data-i18n="workflow.lede">
+              You may have agent tasks running. OrbitSwitch never rotates accounts silently in the background and never
+              touches local credentials before verifying the target account.
+            </p>
+          </div>
+        </div>
+
+        <ol class="workflow-steps">
           <li>
-            <h3>Download</h3>
-            <p>
-              Get the <a data-download="mac" href="https://github.com/shengyy/agyorbit/releases/latest">.dmg for macOS</a>
-              or the <a data-download="win" href="https://github.com/shengyy/agyorbit/releases/latest">installer for Windows</a>.
-              Antigravity must already be installed.
+            <span class="step-num">01</span>
+            <h3 data-i18n="workflow.s1.title">Spot headroom at a glance</h3>
+            <p data-i18n="workflow.s1.body">
+              Quotas refresh every 5 minutes and on open. Windows below 35% turn amber, below 10% turn red, and the
+              account with the most headroom is tagged Most left.
             </p>
           </li>
           <li>
-            <h3>Open it the first time</h3>
-            <p>
-              Builds aren't code-signed yet. On macOS, right-click AgyOrbit and choose <strong>Open</strong>, or run:
+            <span class="step-num">02</span>
+            <h3 data-i18n="workflow.s2.title">Confirm inside the panel</h3>
+            <p data-i18n="workflow.s2.body">
+              Clicking an account slides up an in-surface sheet (Enter confirms, Esc cancels) that explicitly names the
+              desktop app, language server, helpers, and CLI to be closed or updated.
             </p>
-            <pre><code>xattr -dr com.apple.quarantine /Applications/AgyOrbit.app</code></pre>
-            <p>On Windows, choose <strong>More info → Run anyway</strong> in SmartScreen.</p>
           </li>
           <li>
-            <h3>Click the planet</h3>
-            <p>
-              AgyOrbit appears in the menu bar. Your current Antigravity account is already there; add more with
-              <strong>Add account</strong>.
+            <span class="step-num">03</span>
+            <h3 data-i18n="workflow.s3.title">Verify auth, roll back on failure</h3>
+            <p data-i18n="workflow.s3.body">
+              Target authorization is checked before any local state changes. If writing or verifying the new sign-in
+              fails, the previous account is restored automatically.
+            </p>
+          </li>
+          <li>
+            <span class="step-num">04</span>
+            <h3 data-i18n="workflow.s4.title">Keep desktop &amp; CLI aligned</h3>
+            <p data-i18n="workflow.s4.body">
+              Once verified, the target client reopens or syncs on the selected account so you can continue working
+              without manual sign-out loops.
             </p>
           </li>
         </ol>
       </section>
 
+      <section id="boundaries" class="boundaries">
+        <div class="boundaries-inner">
+          <div class="boundaries-head">
+            <p class="section-eyebrow" data-i18n="boundaries.eyebrow">Local by design</p>
+            <h2 data-i18n="boundaries.title">Your accounts stay with you.</h2>
+            <p class="section-lede" data-i18n="boundaries.lede">A small local utility. Sign in with the official clients, keep control of every switch, and see where your quota stands.</p>
+          </div>
+
+          <div class="boundaries-grid">
+            <article class="boundary-item">
+              <h3 data-i18n="boundaries.b1.title">System credential storage</h3>
+              <p data-i18n="boundaries.b1.body">Saved credentials and paired desktop sign-ins stay in macOS Keychain or Windows Credential Manager. Tokens and cookies never reach the interface.</p>
+            </article>
+            <article class="boundary-item">
+              <h3 data-i18n="boundaries.b2.title">No cloud, no proxy, no telemetry</h3>
+              <p data-i18n="boundaries.b2.body">
+                There is no self-hosted backend, no analytics script, and no model traffic relay. Network calls go only
+                to official provider endpoints and GitHub Releases.
+              </p>
+            </article>
+            <article class="boundary-item">
+              <h3 data-i18n="boundaries.b3.title">No auto-rotation or account sharing</h3>
+              <p data-i18n="boundaries.b3.body">
+                Designed strictly for one person managing their own accounts on their own machine. OrbitSwitch never
+                switches accounts automatically when quota runs out.
+              </p>
+            </article>
+            <article class="boundary-item">
+              <h3 data-i18n="boundaries.b4.title">Transparent verification status</h3>
+              <p data-i18n="boundaries.b4.body">Identity and quota reads are checked against real installations. End-to-end switch verification is recorded separately in the project status.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="install" class="install">
+        <p class="section-eyebrow" data-i18n="install.eyebrow">Get started</p>
+        <h2 data-i18n="install.title">Install in three steps</h2>
+        <ol class="install-steps">
+          <li>
+            <h3 data-i18n="install.s1.title">Download the installer</h3>
+            <p data-i18n="install.s1.body">
+              Grab the universal .dmg for macOS 26+ (Apple silicon &amp; Intel) or the -setup.exe installer for Windows
+              10/11 x64 from GitHub Releases. Install the corresponding coding client first.
+            </p>
+            <p class="install-links">
+              <a data-download="mac" href="https://github.com/shengyy/orbitswitch/releases">macOS .dmg</a>
+              <span>·</span>
+              <a data-download="win" href="https://github.com/shengyy/orbitswitch/releases">Windows -setup.exe</a>
+              <span>·</span>
+              <a href="https://github.com/shengyy/orbitswitch/releases">GitHub Releases</a>
+            </p>
+          </li>
+          <li>
+            <h3 data-i18n="install.s2.title">First launch (unsigned builds)</h3>
+            <p data-i18n="install.s2.body1">
+              Builds do not use an Apple Developer ID or Windows commercial certificate yet. On macOS, right-click the
+              app and choose Open, or clear quarantine:
+            </p>
+            <pre><code>xattr -dr com.apple.quarantine /Applications/OrbitSwitch.app</code></pre>
+            <p data-i18n="install.s2.body2">On Windows, choose More info → Run anyway in SmartScreen.</p>
+          </li>
+          <li>
+            <h3 data-i18n="install.s3.title">Open from menu bar or tray</h3>
+            <p data-i18n="install.s3.body">Open the icon in your menu bar or tray. Choose a platform, then add or import an account. Claude Desktop needs a one-time link to the same Claude Code account and workspace.</p>
+          </li>
+        </ol>
+      </section>
+
       <section id="faq" class="faq">
-        <h2>Questions</h2>
-        <details>
-          <summary>Is this safe for my accounts?</summary>
-          <p>
-            AgyOrbit only changes which of your own accounts the official Antigravity app uses. It signs in through
-            Google's normal page, doesn't proxy model traffic or share accounts, and talks to nothing but Google.
-            Please use it within Google's terms.
-          </p>
-        </details>
-        <details>
-          <summary>Do I have to sign out of Antigravity to add an account?</summary>
-          <p>No. Adding an account happens in your browser while Antigravity keeps running.</p>
-        </details>
-        <details>
-          <summary>What does AgyOrbit store?</summary>
-          <p>
-            One refresh token per account in your system keychain, and the account's name, email and plan in a local
-            file. Access tokens live only in memory. The
-            <a href="https://github.com/shengyy/agyorbit/blob/main/SECURITY.md">security notes</a> have the details.
-          </p>
-        </details>
-        <details>
-          <summary>Does it work on Windows?</summary>
-          <p>
-            Windows builds are a beta: they build and pass checks in CI but haven't been verified on a real
-            installation yet. Reports are very welcome.
-          </p>
-        </details>
-        <details>
-          <summary>Why does it need Antigravity installed?</summary>
-          <p>
-            AgyOrbit signs accounts in with Antigravity's own OAuth client, read from your local installation, so the
-            sign-in is exactly what Antigravity itself would store.
-          </p>
-        </details>
+        <p class="section-eyebrow" data-i18n="faq.eyebrow">Details</p>
+        <h2 data-i18n="faq.title">Frequently asked questions</h2>
+        <div class="faq-list">
+          <details open>
+            <summary data-i18n="faq.q1">Which clients can I manage?</summary>
+            <p data-i18n="faq.a1">Gemini manages Antigravity, ChatGPT manages Codex, and Claude manages Claude Desktop with Claude Code. Each tab keeps its own accounts, current sign-in and quota.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q2">How do I add an account?</summary>
+            <p data-i18n="faq.a2">Add opens the official browser sign-in without changing your current CLI account. To include Claude Desktop, sign into the same account and workspace in Desktop and Claude Code, then import the pair.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q3">Is coding quota the same as Gemini web or ChatGPT web chat quota?</summary>
+            <p data-i18n="faq.a3">
+              No. OrbitSwitch reads the rate-limit windows (5-hour and weekly remaining share) reported for the coding
+              environments — Antigravity, Codex, and Claude Code. Those windows are separate from consumer web chat
+              allowances.
+            </p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q4">Why does switching ask for confirmation instead of hot-swapping?</summary>
+            <p data-i18n="faq.a4">A confirmed switch closes the affected desktop app and CLI processes, applies the verified account, and reopens the desktop app. Reopen CLI sessions yourself. Credential failures trigger restoration of the previous sign-in.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q5">What is verified across platforms right now?</summary>
+            <p data-i18n="faq.a5">Antigravity switching has been tested on macOS. Codex and Claude identity/quota reads, plus Claude Desktop binding, are verified read-only. Real Codex/Claude switching and native Windows behavior remain unverified; see docs/status.md for scope.</p>
+          </details>
+        </div>
       </section>
     </main>
 
     <footer>
-      <p>
-        <a href="https://github.com/shengyy/agyorbit">Source on GitHub</a> · MIT License ·
-        <a href="https://github.com/shengyy/agyorbit/blob/main/README.zh-CN.md">简体中文</a>
-      </p>
-      <p class="fine">
-        AgyOrbit is an independent project, not affiliated with or endorsed by Google. Antigravity and Gemini are
-        trademarks of Google LLC.
+      <div class="footer-row">
+        <div class="footer-brand">
+          <img src="assets/brand/app-icon.svg" alt="" width="20" height="20" />
+          <strong>OrbitSwitch</strong>
+          <span>· MIT License</span>
+        </div>
+        <div class="footer-links">
+          <a href="https://github.com/shengyy/orbitswitch" data-i18n="footer.source">Source on GitHub</a>
+          <a href="https://github.com/shengyy/orbitswitch/releases" data-i18n="footer.releases">Releases</a>
+          <a href="https://github.com/shengyy/orbitswitch/blob/main/SECURITY.md" data-i18n="footer.security"
+            >Security</a
+          >
+          <a href="https://github.com/shengyy/orbitswitch/blob/main/docs/status.md">Status</a>
+          <a href="https://github.com/shengyy/orbitswitch/blob/main/README.zh-CN.md" data-i18n="footer.readmeZh"
+            >简体中文文档</a
+          >
+        </div>
+      </div>
+      <p class="fine" data-i18n="footer.fine">
+        OrbitSwitch is an independent open-source project, not affiliated with or endorsed by Google, OpenAI, or
+        Anthropic. Antigravity, Gemini, ChatGPT, Codex, Claude, and Claude Code are trademarks of their respective
+        owners.
       </p>
     </footer>
   </body>

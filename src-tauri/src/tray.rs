@@ -1,6 +1,6 @@
 //! The menu bar / notification area icon.
 //!
-//! Left click toggles the AgyOrbit surface; right click opens a small native
+//! Left click toggles the OrbitSwitch surface; right click opens a small native
 //! menu for when the surface is not wanted.
 
 use tauri::AppHandle;
@@ -12,16 +12,16 @@ use crate::shell;
 pub fn create(app: &AppHandle) -> tauri::Result<()> {
     let chinese = sys_locale::get_locale().is_some_and(|locale| locale.starts_with("zh"));
     let (open_label, quit_label) = if chinese {
-        ("打开 AgyOrbit", "退出 AgyOrbit")
+        ("打开 OrbitSwitch", "退出 OrbitSwitch")
     } else {
-        ("Open AgyOrbit", "Quit AgyOrbit")
+        ("Open OrbitSwitch", "Quit OrbitSwitch")
     };
     let open = MenuItem::with_id(app, "open", open_label, true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", quit_label, true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&open, &PredefinedMenuItem::separator(app)?, &quit])?;
 
     let builder = TrayIconBuilder::with_id("main")
-        .tooltip("AgyOrbit")
+        .tooltip("OrbitSwitch")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {

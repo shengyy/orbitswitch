@@ -23,7 +23,7 @@
       "nsis"
     ],
     "category": "DeveloperTool",
-    "shortDescription": "Switch Google Antigravity accounts from the menu bar",
+    "shortDescription": "Switch Antigravity, Codex and Claude accounts and view subscription quotas",
     "copyright": "\u00a9 OrbitSwitch contributors \u00b7 MIT License",
     "icon": [
       "icons/32x32.png",

@@ -1,5 +1,6 @@
 import { displayName } from "../format";
 import { t } from "../i18n";
+import { providerInfo } from "../providers";
 import type { Account, Operation, SwitchStep } from "../types";
 import { CheckIcon, OrbitMark } from "./icons";
 import { Sheet, SheetActions } from "./sheet";
@@ -15,6 +16,7 @@ interface Props {
 
 /** Progress for whatever the backend is doing right now. */
 export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
+  const vars = "provider" in operation ? providerInfo[operation.provider] : {};
   if (operation.kind === "adding") {
     return (
       <Sheet onDismiss={onCancelAdd}>
@@ -22,7 +24,7 @@ export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
           <OrbitMark className="orbiting" width={40} height={40} />
         </div>
         <h2 className="center">{t("adding.title")}</h2>
-        <p className="center">{t("adding.body")}</p>
+        <p className="center">{t("adding.body", vars)}</p>
         <SheetActions>
           <button type="button" className="btn wide" onClick={onCancelAdd}>
             {t("adding.cancel")}
@@ -47,7 +49,7 @@ export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
               <span className="step-mark">
                 {index < current ? <CheckIcon /> : <span className="step-dot" />}
               </span>
-              {t(`progress.${step}`)}
+              {t(`progress.${step}`, vars)}
             </li>
           ))}
         </ol>
@@ -79,7 +81,7 @@ export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
     <Sheet>
       <div className="activity-line">
         <span className="spinner" />
-        {t(operation.kind === "stopping" ? "progress.stopping" : "progress.restarting")}
+        {t(operation.kind === "stopping" ? "progress.stopping" : "progress.restarting", vars)}
       </div>
     </Sheet>
   );

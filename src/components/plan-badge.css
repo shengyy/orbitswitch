@@ -10,24 +10,28 @@
   background: var(--fill-2);
 }
 
-.plan-pro {
-  color: #6d4aff;
-  background: rgb(109 74 255 / 0.12);
+.plan-pro,
+.plan-plus {
+  color: #535c57;
+  background: rgb(83 92 87 / 0.12);
 }
 
-.plan-ultra {
-  color: #c27803;
-  background: rgb(245 165 36 / 0.16);
+.plan-ultra,
+.plan-max {
+  color: #375f4e;
+  background: rgb(71 111 91 / 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
-  .plan-pro {
-    color: #b3a1ff;
-    background: rgb(150 125 255 / 0.18);
+  .plan-pro,
+  .plan-plus {
+    color: #c0cbc4;
+    background: rgb(192 203 196 / 0.18);
   }
 
-  .plan-ultra {
-    color: #ffc35c;
-    background: rgb(245 165 36 / 0.18);
+  .plan-ultra,
+  .plan-max {
+    color: #9cc4ae;
+    background: rgb(71 111 91 / 0.18);
   }
 }

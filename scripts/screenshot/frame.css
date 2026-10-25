@@ -17,12 +17,8 @@ body {
   padding-bottom: 36px;
   border-radius: 22px;
   overflow: hidden;
-  background:
-    radial-gradient(55% 60% at 12% 18%, #9db8ff 0%, transparent 62%),
-    radial-gradient(50% 55% at 92% 88%, #ffc2a1 0%, transparent 62%),
-    radial-gradient(45% 50% at 85% 20%, #c9b5ff 0%, transparent 60%),
-    linear-gradient(160deg, #dfe7ff, #f4e9ff);
-  box-shadow: 0 18px 50px rgb(16 24 64 / 0.22);
+  background: linear-gradient(155deg, #d6dfd7, #e7e6dc);
+  box-shadow: 0 18px 50px rgb(15 22 18 / 0.22);
 }
 
 .menubar {
@@ -64,20 +60,16 @@ body {
   margin: 8px 0 0 144px;
   border-radius: 18px;
   overflow: hidden;
-  background: rgb(248 248 250 / 0.7);
+  background: rgb(248 247 243 / 0.7);
   backdrop-filter: blur(40px) saturate(1.8);
   box-shadow:
-    0 20px 50px rgb(16 24 64 / 0.25),
+    0 20px 50px rgb(15 22 18 / 0.25),
     inset 0 0 0 0.5px rgb(255 255 255 / 0.7);
 }
 
 @media (prefers-color-scheme: dark) {
   .stage {
-    background:
-      radial-gradient(55% 60% at 12% 18%, #3a4fb5 0%, transparent 62%),
-      radial-gradient(50% 55% at 92% 88%, #8a3f6e 0%, transparent 62%),
-      radial-gradient(45% 50% at 85% 20%, #4b2f8f 0%, transparent 60%),
-      linear-gradient(160deg, #141a3a, #1d1236);
+    background: linear-gradient(155deg, #28362f, #1b2420);
     box-shadow: 0 18px 50px rgb(0 0 0 / 0.45);
   }
 
@@ -91,7 +83,7 @@ body {
   }
 
   #root {
-    background: rgb(36 36 42 / 0.72);
+    background: rgb(29 35 31 / 0.72);
     box-shadow:
       0 20px 50px rgb(0 0 0 / 0.5),
       inset 0 0 0 0.5px rgb(255 255 255 / 0.14);

@@ -13,7 +13,8 @@ Thanks for helping. This page is the human workflow; repository rules for coding
 - [Bun](https://bun.sh) for the frontend and the Tauri CLI.
 - macOS: Xcode Command Line Tools. Windows: the MSVC build tools and WebView2 (preinstalled on Windows
   10/11). See Tauri's [prerequisites](https://tauri.app/start/prerequisites/).
-- Antigravity installed and signed in, to try anything end to end.
+- The relevant official client installed and signed in for real integration probes. Native account
+  switching closes that client's sessions, so use disposable work and explicit confirmation.
 
 ```bash
 bun install
@@ -47,6 +48,7 @@ The same commands run in CI on macOS and Windows:
 
 ```bash
 bun run check                       # Biome + TypeScript
+bun run test                        # quota behavior
 bun run build                       # frontend bundle, needed before the Rust checks
 cd src-tauri
 cargo fmt --check
@@ -54,16 +56,18 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-### Verifying against a real Antigravity
+### Read-only checks against installed clients
 
 ```bash
 cd src-tauri && cargo test system_tests -- --ignored --nocapture
 ```
 
-This is read-only: it locates the installation, discovers the OAuth client, reads the signed-in account,
-refreshes its token and fetches quota, printing nothing secret. If you verified something new (for
-example on Windows or a new Antigravity version), update the table in
-[`docs/antigravity-integration.md`](docs/antigravity-integration.md) in the same PR.
+This requires all three official clients to be signed in. It reads installed credentials, fetches
+quota and validates Claude Desktop's binding without launching or stopping clients or rewriting
+their sign-ins. The Antigravity probe redeems its existing refresh token; native Codex/Claude probes
+do not rotate tokens. Use a more specific test name to run an individual probe. If you verify a new
+contract or client version, update [`docs/status.md`](docs/status.md) and the owning integration
+document in the same PR. These probes do not establish end-to-end switching or enrollment.
 
 ## Pull requests
 

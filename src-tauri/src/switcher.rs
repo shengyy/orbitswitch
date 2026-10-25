@@ -13,16 +13,19 @@ use crate::antigravity::{live, process};
 use crate::error::{Error, Result};
 use crate::google::oauth;
 use crate::model::{Operation, QuotaState, SwitchStep};
+use crate::provider::Provider;
 use crate::registry;
 use crate::state::Orbit;
 use crate::{quota, vault};
 
 pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
     let step = |step| Operation::Switching {
+        provider: Provider::Antigravity,
         target_id: target_id.to_owned(),
         step,
     };
     let guard = orbit.begin(step(SwitchStep::Preparing))?;
+    let sync = orbit.sync_lock.lock().await;
     let install = orbit.install()?;
     if orbit.state().registry.get(target_id).is_none() {
         return Err(Error::AccountNotFound);
@@ -61,6 +64,7 @@ pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
         };
         if let Err(restore_err) = restored {
             log::error!("restoring the previous sign-in failed: {restore_err}");
+            return Err(Error::RollbackFailed);
         }
         let _ = process::launch(&install).await;
         return Err(err);
@@ -78,6 +82,7 @@ pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
 
     orbit.set_operation(step(SwitchStep::Launching));
     let launched = process::launch(&install).await;
+    drop(sync);
     drop(guard);
     orbit.refresh_status();
     quota::refresh_one(orbit, target_id).await;
@@ -112,7 +117,9 @@ fn write_and_verify(bundle: &Bundle, target_id: &str) -> Result<()> {
 }
 
 pub async fn stop(orbit: &Arc<Orbit>) -> Result<()> {
-    let _guard = orbit.begin(Operation::Stopping)?;
+    let _guard = orbit.begin(Operation::Stopping {
+        provider: Provider::Antigravity,
+    })?;
     let install = orbit.install().ok();
     let result = process::stop_all(install.as_ref()).await;
     orbit.refresh_status();
@@ -120,7 +127,9 @@ pub async fn stop(orbit: &Arc<Orbit>) -> Result<()> {
 }
 
 pub async fn restart(orbit: &Arc<Orbit>) -> Result<()> {
-    let _guard = orbit.begin(Operation::Restarting)?;
+    let _guard = orbit.begin(Operation::Restarting {
+        provider: Provider::Antigravity,
+    })?;
     let install = orbit.install()?;
     process::stop_all(Some(&install)).await?;
     let result = process::launch(&install).await;

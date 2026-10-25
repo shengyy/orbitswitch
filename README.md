@@ -1,117 +1,57 @@
-<p align="center">
-  <img src="assets/brand/app-icon.svg" width="112" alt="AgyOrbit icon">
-</p>
+<p align="center"><img src="assets/brand/app-icon.svg" width="104" alt="OrbitSwitch icon"></p>
+<h1 align="center">OrbitSwitch</h1>
+<p align="center">Switch accounts. See quota. Stay in flow.</p>
+<p align="center"><a href="README.zh-CN.md">简体中文</a> · <a href="https://shengyy.github.io/orbitswitch/">Website</a> · <a href="https://github.com/shengyy/orbitswitch/releases">Releases</a></p>
 
-<h1 align="center">AgyOrbit</h1>
+A compact menu bar and system tray utility for **your own** Antigravity, Codex and Claude accounts.
+Three tabs, one consistent view of subscriptions, remaining quota and reset times.
 
-<p align="center">
-  Your Google Antigravity accounts, one click apart.<br>
-  See every account's quota from the menu bar and switch without signing out.
-</p>
+<picture><source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.png"><img src="assets/screenshots/hero-light.png" width="640" alt="OrbitSwitch's three platform tabs and fictional subscription accounts"></picture>
 
-<p align="center">
-  <strong>English</strong> | <a href="README.zh-CN.md">简体中文</a>
-</p>
+| Tab | Account switching | Subscription quota |
+|---|---|---|
+| Gemini | Antigravity desktop + `agy` CLI | Google model groups |
+| ChatGPT | Codex desktop + CLI | Codex windows and additional pools |
+| Claude | Claude Desktop + Claude Code, after linking their sign-ins | Claude shared and model-specific windows |
 
-<p align="center">
-  <a href="https://github.com/shengyy/agyorbit/actions/workflows/ci.yml"><img src="https://github.com/shengyy/agyorbit/actions/workflows/ci.yml/badge.svg?event=pull_request" alt="CI"></a>
-  <a href="https://github.com/shengyy/agyorbit/releases"><img src="https://img.shields.io/github/v/release/shengyy/agyorbit?include_prereleases&sort=semver" alt="Release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
-</p>
+Changing tabs only changes the view. A switch asks before closing clients, verifies the new sign-in,
+restores credentials on failure, and reopens the installed desktop app. Reopen CLI sessions yourself.
+A failed refresh keeps the previous numbers with a stale label. Missing windows are never guessed.
+These are the coding clients' quotas, not Gemini or ChatGPT web-chat allowances.
 
-<p align="center"><a href="https://shengyy.github.io/agyorbit/"><strong>Website</strong></a> · <a href="https://github.com/shengyy/agyorbit/releases/latest"><strong>Download</strong></a></p>
+The multi-platform implementation is **unreleased**. Published 0.1.x packages are the original
+Antigravity-only AgyOrbit. Codex and Claude identity/quota reads and Claude Desktop binding have been
+verified on macOS; real account switching and browser enrollment for these new adapters remain
+**not verified**. See the exact [verification scope](docs/status.md).
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.png">
-    <img src="assets/screenshots/hero-light.png" width="640" alt="The AgyOrbit popover under the menu bar, listing three accounts with their Gemini and Claude quotas">
-  </picture>
-</p>
+## Install and use
 
----
+macOS 26+ or Windows 10/11 x64. Install the official clients you want to manage; adding a Codex or
+Claude account requires its official CLI. Download a compatible build from
+[Releases](https://github.com/shengyy/orbitswitch/releases).
 
-If you use more than one Google account with [Antigravity](https://antigravity.google), switching means
-signing out, signing back in and waiting, and you never know which account still has Claude or Gemini
-quota left. AgyOrbit lives in the menu bar (macOS) or the notification area (Windows) and fixes both.
+macOS builds use ad-hoc signing, without Apple notarization. If macOS blocks a trusted downloaded
+build, use **Open** from the context menu or `xattr -dr com.apple.quarantine /Applications/OrbitSwitch.app`.
+Windows builds are unsigned; SmartScreen may require **More info → Run anyway**.
 
-## Features
+1. Open OrbitSwitch from the menu bar or tray and choose a platform tab.
+2. **Add account** opens the official sign-in without changing your current client account.
+   **Import** saves the account already signed in on this computer.
+3. For Claude Desktop, first sign into the same account and workspace in both Desktop and Claude Code,
+   then import. The card's **Link desktop** action explains this step.
+4. Pick another account, review the affected processes, and confirm the switch.
 
-- **Every account at a glance.** Gemini and Claude (Opus, Sonnet, GPT-OSS) quotas for each account, the
-  5-hour and weekly windows side by side, with reset times. The account with the most quota left is
-  marked.
-- **Switch with one confirmed click.** AgyOrbit closes Antigravity and the `agy` CLI, signs Antigravity
-  in to the chosen account, verifies it and reopens Antigravity. If writing or verifying the new sign-in
-  fails, the previous one is restored.
-- **Add accounts in the browser.** A normal Google sign-in page; no need to sign out of Antigravity. The
-  account Antigravity is already using is picked up automatically.
-- **Restart or quit Antigravity** from the same place, with a confirmation that lists what will close.
-- **Native feel.** A Liquid Glass popover on macOS, light and dark mode, English and Simplified Chinese.
-- **Private.** Tokens stay in your system keychain and only ever go to Google. No server, no telemetry.
+The app menu offers Open at Login, logs, update checks and Quit. Updates restart OrbitSwitch only.
+The rename retains the existing application identifier and saved account storage.
 
-## Requirements
+## Local by design
 
-| Platform | Status |
-|---|---|
-| macOS 26 or later (Apple silicon and Intel) | Supported |
-| Windows 10 / 11 x64 | Experimental: builds in CI, not yet verified on a real installation ([status](docs/status.md)) |
+Credentials stay in the Rust backend and the OS credential store. Claude's paired desktop session is
+stored there too. The frontend receives account metadata and quota snapshots, never tokens or cookies.
+OrbitSwitch contacts official authentication/usage services and GitHub for updates. It has no account
+server, model proxy, automatic account rotation or telemetry. Read the [security inventory](SECURITY.md).
 
-Antigravity must be installed. AgyOrbit reads its sign-in configuration from the local installation.
+Development: [CONTRIBUTING.md](CONTRIBUTING.md). Product rules: [PRODUCT.md](PRODUCT.md).
+Implementation and reference projects: [native integrations](docs/native-integrations.md).
 
-## Install
-
-Download the latest `.dmg` (macOS) or `-setup.exe` (Windows) from
-[Releases](https://github.com/shengyy/agyorbit/releases).
-
-Builds have no Apple Developer ID or Windows code-signing certificate yet. On macOS, open the app once with right-click → **Open**, or run
-`xattr -dr com.apple.quarantine /Applications/AgyOrbit.app`. On Windows, choose **More info → Run
-anyway** in SmartScreen.
-
-AgyOrbit checks for updates at startup and daily. Click the update banner, or **⋯ → Check for
-Updates**, to read the release notes, then choose **Update & Restart**. Only AgyOrbit restarts;
-Antigravity keeps running. Accounts and settings are kept. If your version has no Check for Updates
-menu item, quit AgyOrbit and replace it with the latest installer once.
-
-To build from source, see [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Use
-
-1. Launch AgyOrbit and click its icon. The account Antigravity is signed in with appears as **Current**.
-2. **Add account** opens Google sign-in in your browser. Pick another account and allow access.
-3. Click an account (or its **Switch** button) and confirm. Antigravity restarts on that account.
-4. Right-click an account to sign in again, copy its email or remove it. The `⋯` menu at the top has
-   *Check for Updates*, *Open at Login*, logs and Quit.
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/flow-dark.png">
-    <img src="assets/screenshots/flow-light.png" width="860" alt="Confirming a switch, then the switch progress">
-  </picture>
-</p>
-
-## How it works
-
-Antigravity keeps its sign-in in the system keychain (plus a fallback file). AgyOrbit signs accounts in
-with Antigravity's own OAuth client, read from your local installation, so its tokens are exactly what
-Antigravity itself would store. Switching rewrites that credential while Antigravity is closed.
-Quotas come from the same Cloud Code endpoints the IDE uses. Details and the versions they were verified
-on: [docs/antigravity-integration.md](docs/antigravity-integration.md).
-
-## Privacy and fair use
-
-AgyOrbit only switches which of **your own** accounts the official Antigravity app uses. It talks to
-nothing but Google and has no server or telemetry. What it will never do, such as proxying model traffic
-or rotating accounts to get around limits, is listed under [non-goals](PRODUCT.md#non-goals); what it
-stores and sends is in [SECURITY.md](SECURITY.md). Please use it within Google's terms.
-
-AgyOrbit is an independent project and is not affiliated with or endorsed by Google. "Antigravity" and
-"Gemini" are trademarks of Google LLC.
-
-## Contributing
-
-Issues and pull requests are welcome; Windows verification is the most useful help right now. Start with
-[CONTRIBUTING.md](CONTRIBUTING.md), the product rules in [PRODUCT.md](PRODUCT.md) and the
-[docs](docs/README.md).
-
-## License
-
-[MIT](LICENSE)
+MIT. Independent of Google, OpenAI and Anthropic; product names belong to their respective owners.

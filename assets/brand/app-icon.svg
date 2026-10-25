@@ -1,62 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="sky" x1="0.15" y1="0" x2="0.85" y2="1">
-      <stop offset="0" stop-color="#1f2a6b"/>
-      <stop offset="0.55" stop-color="#121a48"/>
-      <stop offset="1" stop-color="#090d26"/>
+    <clipPath id="tile">
+      <rect x="100" y="100" width="824" height="824" rx="186"/>
+    </clipPath>
+    <linearGradient id="bg" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#1a201e"/>
+      <stop offset="1" stop-color="#121715"/>
     </linearGradient>
-    <radialGradient id="halo" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#5b8cff" stop-opacity="0.38"/>
-      <stop offset="1" stop-color="#5b8cff" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="planet" x1="0.2" y1="0.1" x2="0.85" y2="0.95">
-      <stop offset="0" stop-color="#a9c6ff"/>
-      <stop offset="0.45" stop-color="#5f8dff"/>
-      <stop offset="1" stop-color="#3550e0"/>
+    <linearGradient id="trackWell" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#090c0b" stop-opacity="0.1"/>
+      <stop offset="1" stop-color="#090c0b" stop-opacity="0.06"/>
     </linearGradient>
-    <radialGradient id="shade" cx="0.78" cy="0.82" r="0.75">
-      <stop offset="0" stop-color="#1b2a8f" stop-opacity="0.55"/>
-      <stop offset="1" stop-color="#1b2a8f" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="sun" cx="0.38" cy="0.34" r="0.72">
-      <stop offset="0" stop-color="#fff3cf"/>
-      <stop offset="0.5" stop-color="#ffbe3d"/>
-      <stop offset="1" stop-color="#ff8418"/>
-    </radialGradient>
-    <radialGradient id="sunGlow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#ffae35" stop-opacity="0.7"/>
-      <stop offset="1" stop-color="#ffae35" stop-opacity="0"/>
-    </radialGradient>
-    <mask id="gap">
-      <rect width="1024" height="1024" fill="#fff"/>
-      <g transform="rotate(-20 512 512)">
-        <path d="M850 512 A340 96 0 0 1 174 512" fill="none" stroke="#000" stroke-width="50"/>
-      </g>
-    </mask>
-    <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="186"/></clipPath>
+    <linearGradient id="sectorActive" x1="0.2" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0" stop-color="#8ab3a1"/>
+      <stop offset="1" stop-color="#769f8d"/>
+    </linearGradient>
+    <linearGradient id="sectorLeft" x1="0.2" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0" stop-color="#46534e"/>
+      <stop offset="1" stop-color="#3d4944"/>
+    </linearGradient>
+    <linearGradient id="sectorBottom" x1="0.2" y1="0.1" x2="0.85" y2="0.9">
+      <stop offset="0" stop-color="#414d48"/>
+      <stop offset="1" stop-color="#38433f"/>
+    </linearGradient>
+    <linearGradient id="rotor" x1="0.2" y1="0.1" x2="0.8" y2="0.9">
+      <stop offset="0" stop-color="#f3f0e8"/>
+      <stop offset="1" stop-color="#e6e2d8"/>
+    </linearGradient>
+    <linearGradient id="tileRim" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#dce8e2" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#dce8e2" stop-opacity="0.06"/>
+    </linearGradient>
   </defs>
   <g clip-path="url(#tile)">
-    <rect x="100" y="100" width="824" height="824" fill="url(#sky)"/>
-    <circle cx="512" cy="512" r="360" fill="url(#halo)"/>
-    <g fill="#fff">
-      <circle cx="262" cy="250" r="5" opacity=".5"/>
-      <circle cx="792" cy="268" r="4" opacity=".4"/>
-      <circle cx="770" cy="792" r="4.5" opacity=".35"/>
-      <circle cx="238" cy="772" r="3.5" opacity=".35"/>
-    </g>
-    <g transform="rotate(-20 512 512)">
-      <path d="M174 512 A340 96 0 0 1 850 512" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="20"/>
-      <circle cx="203.9" cy="471.4" r="21" fill="#fff" opacity=".55"/>
-    </g>
-    <g mask="url(#gap)">
-      <circle cx="512" cy="512" r="172" fill="url(#planet)"/>
-      <circle cx="512" cy="512" r="172" fill="url(#shade)"/>
-    </g>
-    <g transform="rotate(-20 512 512)">
-      <path d="M850 512 A340 96 0 0 1 174 512" fill="none" stroke="#fff" stroke-opacity=".95" stroke-width="20" stroke-linecap="round"/>
-      <circle cx="331.8" cy="593.4" r="23" fill="#fff" opacity=".8"/>
-      <circle cx="817.6" cy="554.1" r="104" fill="url(#sunGlow)"/>
-      <circle cx="817.6" cy="554.1" r="50" fill="url(#sun)"/>
-    </g>
+    <rect x="100" y="100" width="824" height="824" fill="url(#bg)"/>
+    <circle cx="512" cy="512" r="282" fill="none" stroke="url(#trackWell)" stroke-width="124"/>
+    <circle cx="512" cy="512" r="168" fill="#090c0b" fill-opacity="0.22"/>
+    <path d="M 193.15 624.16 A 338 338 0 0 1 449.71 179.79 A 26 26 0 0 1 480.5 205.34 L 480.5 266.65 A 26 26 0 0 1 460.43 291.96 A 226 226 0 0 0 295.66 577.36 A 26 26 0 0 1 283.77 607.4 L 230.68 638.05 A 26 26 0 0 1 193.15 624.16 Z" fill="url(#sectorLeft)"/>
+    <path d="M 768.56 732.05 A 338 338 0 0 1 255.44 732.05 A 26 26 0 0 1 262.18 692.6 L 315.27 661.95 A 26 26 0 0 1 347.23 666.68 A 226 226 0 0 0 676.77 666.68 A 26 26 0 0 1 708.73 661.95 L 761.82 692.6 A 26 26 0 0 1 768.56 732.05 Z" fill="url(#sectorBottom)"/>
+    <path d="M 574.29 179.79 A 338 338 0 0 1 830.85 624.16 A 26 26 0 0 1 793.32 638.05 L 740.23 607.4 A 26 26 0 0 1 728.34 577.36 A 226 226 0 0 0 563.57 291.96 A 26 26 0 0 1 543.5 266.65 L 543.5 205.34 A 26 26 0 0 1 574.29 179.79 Z" fill="url(#sectorActive)"/>
+    <path d="M 496.71 402.06 L 620.51 384.84 A 52.5 52.5 0 0 1 672.3 464.6 L 606.22 570.69 A 111 111 0 1 1 496.71 402.06 Z M 558 512 A 46 46 0 1 0 466 512 A 46 46 0 1 0 558 512 Z" fill="url(#rotor)" fill-rule="evenodd"/>
+    <rect x="102" y="102" width="820" height="820" rx="184" fill="none" stroke="url(#tileRim)" stroke-width="6"/>
   </g>
 </svg>

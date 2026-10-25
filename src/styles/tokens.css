@@ -14,14 +14,14 @@
   --fill-3: rgb(0 0 0 / 0.11);
   --line: rgb(0 0 0 / 0.09);
 
-  --accent: #0a84ff;
-  --accent-text: #0066d6;
-  --accent-fill: rgb(10 132 255 / 0.12);
-  --accent-line: rgb(10 132 255 / 0.45);
+  --accent: #476f5b;
+  --accent-text: #375f4e;
+  --accent-fill: rgb(71 111 91 / 0.12);
+  --accent-line: rgb(71 111 91 / 0.45);
   --good-text: #1a7f4b;
   --good-fill: rgb(48 164 108 / 0.14);
 
-  --meter-ok: #4c8dff;
+  --meter-ok: #5f8972;
   --meter-ok-strong: #30a46c;
   --meter-low: #f5a524;
   --meter-critical: #ff453a;
@@ -45,17 +45,17 @@
     --fill-3: rgb(255 255 255 / 0.13);
     --line: rgb(255 255 255 / 0.1);
 
-    --accent-text: #5aa9ff;
-    --accent-fill: rgb(10 132 255 / 0.2);
-    --accent-line: rgb(90 169 255 / 0.5);
+    --accent-text: #9cc4ae;
+    --accent-fill: rgb(71 111 91 / 0.2);
+    --accent-line: rgb(156 196 174 / 0.5);
     --good-text: #5fd39a;
     --good-fill: rgb(48 164 108 / 0.2);
 
-    --meter-ok: #5b9bff;
+    --meter-ok: #82aa98;
 
     --card: rgb(255 255 255 / 0.06);
     --card-hover: rgb(255 255 255 / 0.1);
-    --card-active: rgb(90 150 255 / 0.12);
+    --card-active: rgb(130 170 152 / 0.12);
     --sheet: rgb(40 40 44 / 0.97);
     --scrim: rgb(0 0 0 / 0.3);
   }
@@ -66,7 +66,7 @@
   --surface: #f3f3f4;
   --card: #ffffff;
   --card-hover: #fafafa;
-  --card-active: #f2f7ff;
+  --card-active: #eff4ef;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -74,6 +74,6 @@
     --surface: #1f1f22;
     --card: #2a2a2e;
     --card-hover: #303035;
-    --card-active: #26324a;
+    --card-active: #293a30;
   }
 }

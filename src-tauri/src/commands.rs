@@ -12,6 +12,7 @@ use crate::error::{Error, Result};
 use crate::model::{Snapshot, UpdateInfo};
 use crate::state::Orbit;
 use crate::{accounts, autostart, quota, scheduler, shell, switcher, updater};
+use crate::{native, provider::Provider};
 
 type Shared<'a> = State<'a, Arc<Orbit>>;
 
@@ -34,8 +35,12 @@ pub async fn refresh(orbit: Shared<'_>, force: bool) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn add_account(orbit: Shared<'_>) -> Result<String> {
-    accounts::add(&orbit).await
+pub async fn add_account(orbit: Shared<'_>, provider: Provider) -> Result<String> {
+    if provider == Provider::Antigravity {
+        accounts::add(&orbit).await
+    } else {
+        native::add(&orbit, provider).await
+    }
 }
 
 #[tauri::command]
@@ -44,28 +49,60 @@ pub fn cancel_add_account(orbit: Shared<'_>) {
 }
 
 #[tauri::command]
-pub fn remove_account(orbit: Shared<'_>, id: String) -> Result<()> {
-    accounts::remove(&orbit, &id)
+pub async fn remove_account(orbit: Shared<'_>, id: String) -> Result<()> {
+    let provider = orbit
+        .state()
+        .registry
+        .get(&id)
+        .ok_or(Error::AccountNotFound)?
+        .provider;
+    if provider == Provider::Antigravity {
+        accounts::remove(&orbit, &id).await
+    } else {
+        native::remove(&orbit, &id).await
+    }
 }
 
 #[tauri::command]
 pub async fn switch_account(orbit: Shared<'_>, id: String) -> Result<()> {
-    switcher::switch(&orbit, &id).await
+    let provider = orbit
+        .state()
+        .registry
+        .get(&id)
+        .ok_or(Error::AccountNotFound)?
+        .provider;
+    if provider == Provider::Antigravity {
+        switcher::switch(&orbit, &id).await
+    } else {
+        native::switch(&orbit, provider, &id).await
+    }
 }
 
 #[tauri::command]
-pub fn running_processes(orbit: Shared<'_>) -> Vec<RelatedProcess> {
-    process::scan(orbit.install().ok().as_ref())
+pub fn running_processes(orbit: Shared<'_>, provider: Provider) -> Vec<RelatedProcess> {
+    if provider == Provider::Antigravity {
+        process::scan(orbit.install().ok().as_ref())
+    } else {
+        native::process::scan(provider, &native::install::locate(provider))
+    }
 }
 
 #[tauri::command]
-pub async fn stop_antigravity(orbit: Shared<'_>) -> Result<()> {
-    switcher::stop(&orbit).await
+pub async fn stop_client(orbit: Shared<'_>, provider: Provider) -> Result<()> {
+    if provider == Provider::Antigravity {
+        switcher::stop(&orbit).await
+    } else {
+        native::control(&orbit, provider, false).await
+    }
 }
 
 #[tauri::command]
-pub async fn restart_antigravity(orbit: Shared<'_>) -> Result<()> {
-    switcher::restart(&orbit).await
+pub async fn restart_client(orbit: Shared<'_>, provider: Provider) -> Result<()> {
+    if provider == Provider::Antigravity {
+        switcher::restart(&orbit).await
+    } else {
+        native::control(&orbit, provider, true).await
+    }
 }
 
 #[tauri::command]
@@ -116,4 +153,22 @@ pub async fn install_update(orbit: Shared<'_>, version: String) -> Result<()> {
 #[tauri::command]
 pub fn quit(app: AppHandle) {
     app.exit(0);
+}
+
+#[tauri::command]
+pub async fn import_account(
+    orbit: Shared<'_>,
+    provider: Provider,
+    expected_id: Option<String>,
+) -> Result<String> {
+    if provider == Provider::Antigravity {
+        accounts::sync_live(&orbit).await?;
+        orbit
+            .state()
+            .active_id
+            .clone()
+            .ok_or(Error::AccountNotFound)
+    } else {
+        native::import(&orbit, provider, expected_id.as_deref()).await
+    }
 }

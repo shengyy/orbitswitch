@@ -1,4 +1,4 @@
-//! Everything AgyOrbit knows about the locally installed Antigravity.
+//! Everything OrbitSwitch knows about the locally installed Antigravity.
 
 pub mod credential;
 pub mod install;

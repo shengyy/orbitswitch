@@ -234,7 +234,9 @@ async fn release_artifacts_verify() {
     for target in ["darwin-aarch64", "darwin-x86_64", "windows-x86_64"] {
         let artifact = &manifest["platforms"][target];
         let url = artifact["url"].as_str().unwrap();
-        assert!(url.starts_with("https://api.github.com/repos/shengyy/agyorbit/releases/assets/"));
+        assert!(
+            url.starts_with("https://api.github.com/repos/shengyy/orbitswitch/releases/assets/")
+        );
         let asset = assets.iter().find(|asset| asset["url"] == url).unwrap();
         let file = asset["name"].as_str().unwrap();
         assert!(if target.starts_with("darwin") {
@@ -288,10 +290,10 @@ async fn verify_update(
 
 #[cfg(target_os = "macos")]
 #[tokio::test]
-#[ignore = "requires a local signed bundle in AGYORBIT_UPDATE_PACKAGE"]
+#[ignore = "requires a local signed bundle in ORBITSWITCH_UPDATE_PACKAGE"]
 async fn local_signed_bundle_installs() {
     let package = std::path::PathBuf::from(
-        std::env::var_os("AGYORBIT_UPDATE_PACKAGE").expect("set AGYORBIT_UPDATE_PACKAGE"),
+        std::env::var_os("ORBITSWITCH_UPDATE_PACKAGE").expect("set ORBITSWITCH_UPDATE_PACKAGE"),
     );
     let signature = std::fs::read_to_string(format!("{}.sig", package.display())).unwrap();
     let bytes = std::fs::read(package).unwrap();

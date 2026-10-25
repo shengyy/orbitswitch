@@ -9,7 +9,7 @@ facts that every maintainer needs; history lives in Git, pull requests and [CHAN
 | Document | Only responsibility |
 |---|---|
 | [README.md](../README.md) / [README.zh-CN.md](../README.zh-CN.md) | Entry for users: what it is, install, use. The two are kept in sync |
-| [PRODUCT.md](../PRODUCT.md) | What AgyOrbit does, its rules and its non-goals |
+| [PRODUCT.md](../PRODUCT.md) | What OrbitSwitch does, its rules and its non-goals |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Human workflow: setup, checks, issues, pull requests |
 | [AGENTS.md](../AGENTS.md) | Shared boundaries and routing for coding agents, loaded every session |
 | [CLAUDE.md](../CLAUDE.md) | Imports AGENTS.md and adds Claude-specific context |
@@ -19,6 +19,7 @@ facts that every maintainer needs; history lives in Git, pull requests and [CHAN
 | [status.md](status.md) | Platform support and scope of feature verification |
 | [architecture.md](architecture.md) | Code map, data flow, switch sequence, persistence mechanisms |
 | [antigravity-integration.md](antigravity-integration.md) | Antigravity's external contracts and verified versions: credentials, OAuth, APIs, processes |
+| [native-integrations.md](native-integrations.md) | Codex and Claude credentials, account/workspace binding, quota contracts and primary reference implementations |
 | [design.md](design.md) | App and website visuals and interaction, icons and screenshots |
 | [release.md](release.md) | Versioning, builds, release workflow, signing and website publishing |
 | [pull_request_template.md](../.github/pull_request_template.md) | Pull request submission form; contributor workflow is in CONTRIBUTING.md |
@@ -35,15 +36,16 @@ facts that every maintainer needs; history lives in Git, pull requests and [CHAN
 | `src-tauri/` | The Rust app and its Tauri build / bundle configuration |
 | `src-tauri/src/` | Backend modules; the module map is in [architecture.md](architecture.md) |
 | `src-tauri/src/antigravity/` | Adapters for the local Antigravity installation, credentials, OAuth client and processes |
+| `src-tauri/src/native/` | Codex and Claude subscription adapters, paired desktop sessions, process control and credential transactions |
 | `src-tauri/src/google/` | Google OAuth, its loopback callback and Cloud Code API clients |
 | `src-tauri/src/secret_store/` | Platform credential-store primitives |
 | `src-tauri/capabilities/` | Tauri permissions for the app surface |
 | `src-tauri/icons/` | Generated app and tray icons consumed by the Rust app and Tauri bundler |
-| `site/` | Website HTML, styles and download-link script; publishing is in [release.md](release.md#website) |
+| `site/` | Website HTML, styles, interactive fictional demo and release download resolver; publishing is in [release.md](release.md#website) |
 | `assets/` | Public visual assets shared by the README and website |
 | `assets/brand/` | Icon sources (SVG) |
 | `assets/screenshots/` | Rendered screenshots for the README and website; regenerate, never hand-edit |
-| `scripts/` | Development tools for generating visual assets |
+| `scripts/` | Development tools for generating visual assets and quota behavior tests |
 | `scripts/screenshot/` | The screenshot renderer and its fictional demo data |
 | `docs/` | Current maintainer reference documents and this responsibility map |
 | `.github/` | GitHub automation and issue / pull request submission forms |
