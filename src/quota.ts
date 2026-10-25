@@ -16,13 +16,13 @@ export function available(group: QuotaGroup): number | null {
   return windows.length ? Math.min(...windows.map((w) => w.remaining)) : null;
 }
 
-/** Claude (where Opus lives) decides, Gemini breaks ties. */
+/** Primary pool (`codex` or `claude`) decides; `gemini` breaks ties. */
 function score(account: Account): number | null {
   if (account.quota.status !== "ready" || account.quota.stale) return null;
   const groups = account.quota.groups;
-  const claude = groups.find((g) => g.key === (account.provider === "codex" ? "codex" : "claude"));
+  const primaryGroup = groups.find((g) => g.key === (account.provider === "codex" ? "codex" : "claude"));
   const gemini = groups.find((g) => g.key === "gemini");
-  const primary = (claude && available(claude)) ?? (gemini && available(gemini));
+  const primary = (primaryGroup && available(primaryGroup)) ?? (gemini && available(gemini));
   if (primary === null || primary === undefined) return null;
   return primary + ((gemini && available(gemini)) ?? 0) / 1000;
 }

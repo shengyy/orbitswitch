@@ -1,84 +1,68 @@
 # Docs
 
-The map of every document and directory in this repository, and the rules for writing them. Each
-document below owns its subject; this page owns their routing. `docs/` holds only long-lived **current**
-facts that every maintainer needs; history lives in Git, pull requests and [CHANGELOG.md](../CHANGELOG.md).
+Document and directory map for this repository. Each document below owns its subject; `docs/` holds
+only **current** facts.
 
 ## Core documents
 
-| Document | Only responsibility |
+| Document | Responsibility |
 |---|---|
-| [README.md](../README.md) / [README.zh-CN.md](../README.zh-CN.md) | Entry for users: what it is, install, use. The two are kept in sync |
-| [PRODUCT.md](../PRODUCT.md) | What OrbitSwitch does, its rules and its non-goals |
-| [CONTRIBUTING.md](../CONTRIBUTING.md) | Human workflow: setup, checks, issues, pull requests |
-| [AGENTS.md](../AGENTS.md) | Shared boundaries and routing for coding agents, loaded every session |
-| [CLAUDE.md](../CLAUDE.md) | Imports AGENTS.md and adds Claude-specific context |
-| [SECURITY.md](../SECURITY.md) | Data inventory and storage locations, network sends, vulnerability reporting |
-| [CHANGELOG.md](../CHANGELOG.md) | User-visible changes per version |
-| [docs/README.md](README.md) | Document and directory responsibilities, routing and writing rules |
-| [status.md](status.md) | Platform support and scope of feature verification |
-| [architecture.md](architecture.md) | Code map, data flow, switch sequence, persistence mechanisms |
-| [antigravity-integration.md](antigravity-integration.md) | Antigravity's external contracts and verified versions: credentials, OAuth, APIs, processes |
-| [native-integrations.md](native-integrations.md) | Codex and Claude credentials, account/workspace binding, quota contracts and primary reference implementations |
-| [design.md](design.md) | App and website visuals and interaction, icons and screenshots |
+| [README.md](../README.md) / [README.zh-CN.md](../README.zh-CN.md) | User overview, installation and usage (kept in sync) |
+| [PRODUCT.md](../PRODUCT.md) | Product rules and non-goals |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Human contributor workflow: setup, checks, issues, pull requests |
+| [AGENTS.md](../AGENTS.md) | Coding-agent boundaries and routing, loaded every session |
+| [CLAUDE.md](../CLAUDE.md) | Imports `AGENTS.md` and adds Claude Code note |
+| [SECURITY.md](../SECURITY.md) | Data storage inventory, network destinations, vulnerability reporting |
+| [CHANGELOG.md](../CHANGELOG.md) | User-visible changes per version and manual cleanup notes |
+| [docs/README.md](README.md) | Document and directory map and writing rules |
+| [status.md](status.md) | Platform support and feature verification scope |
+| [architecture.md](architecture.md) | Code map, data flow, switch sequence and persistence |
+| [antigravity-integration.md](antigravity-integration.md) | Antigravity credentials, OAuth, Cloud Code APIs, processes and verified versions |
+| [native-integrations.md](native-integrations.md) | Codex and Claude credentials, desktop binding, quota contracts and references |
+| [design.md](design.md) | App and website visuals, interaction, icons and screenshots |
 | [release.md](release.md) | Versioning, builds, release workflow, signing and website publishing |
-| [pull_request_template.md](../.github/pull_request_template.md) | Pull request submission form; contributor workflow is in CONTRIBUTING.md |
-| [LICENSE](../LICENSE) | MIT license terms |
+| [pull_request_template.md](../.github/pull_request_template.md) | Pull request submission form |
+| [LICENSE](../LICENSE) | MIT license |
 
 ## Directories
 
-| Directory | Only holds |
+| Directory | Holds |
 |---|---|
-| `src/` | React UI: snapshot-derived presentation, dialog state and requests through Tauri commands / APIs / plugins; no tokens |
-| `src/components/` | UI components, shared icons and colocated component styles; sheets share `sheet.css` |
-| `src/hooks/` | Snapshot subscription, content-driven sizing and relative-time updates |
-| `src/styles/` | Shared design tokens and base UI styles |
-| `src-tauri/` | The Rust app and its Tauri build / bundle configuration |
-| `src-tauri/src/` | Backend modules; the module map is in [architecture.md](architecture.md) |
-| `src-tauri/src/antigravity/` | Adapters for the local Antigravity installation, credentials, OAuth client and processes |
-| `src-tauri/src/native/` | Codex and Claude subscription adapters, paired desktop sessions, process control and credential transactions |
-| `src-tauri/src/google/` | Google OAuth, its loopback callback and Cloud Code API clients |
+| `src/` | React UI: snapshot-derived presentation, dialog state and Tauri command / plugin requests |
+| `src/components/` | UI components, shared icons and colocated styles; sheets share `sheet.css` |
+| `src/hooks/` | Snapshot subscription, popover auto-size and relative-time ticker |
+| `src/styles/` | Design tokens and base styles |
+| `src-tauri/` | Rust app and Tauri build / bundle configuration |
+| `src-tauri/src/` | Backend modules ([architecture.md](architecture.md)) |
+| `src-tauri/src/antigravity/` | Local Antigravity installation, credentials, OAuth client and processes |
+| `src-tauri/src/native/` | Codex and Claude subscription adapters, desktop sessions, processes and credential transactions |
+| `src-tauri/src/google/` | Google OAuth, loopback callback and Cloud Code API clients |
 | `src-tauri/src/secret_store/` | Platform credential-store primitives |
-| `src-tauri/capabilities/` | Tauri permissions for the app surface |
-| `src-tauri/icons/` | Generated app and tray icons consumed by the Rust app and Tauri bundler |
-| `site/` | Website HTML, styles, interactive fictional demo and release download resolver; publishing is in [release.md](release.md#website) |
-| `assets/` | Public visual assets shared by the README and website |
-| `assets/brand/` | Icon sources (SVG) |
-| `assets/screenshots/` | Rendered screenshots for the README and website; regenerate, never hand-edit |
-| `scripts/` | Development tools for generating visual assets and quota behavior tests |
-| `scripts/screenshot/` | The screenshot renderer and its fictional demo data |
-| `docs/` | Current maintainer reference documents and this responsibility map |
-| `.github/` | GitHub automation and issue / pull request submission forms |
+| `src-tauri/capabilities/` | Tauri permissions |
+| `src-tauri/icons/` | Bundled app and tray icons |
+| `site/` | Website HTML, styles, interactive demo and release download resolver |
+| `assets/` | Shared visual assets for the README and website |
+| `assets/brand/` | SVG icon sources |
+| `assets/screenshots/` | Rendered screenshots for the README and website |
+| `scripts/` | Visual asset scripts and quota behavior tests |
+| `scripts/screenshot/` | Screenshot renderer and fictional demo data |
+| `docs/` | Maintainer reference documents |
+| `.github/` | GitHub workflows and issue / pull request templates |
 | `.github/workflows/` | CI, release and Pages workflows |
-| `.github/ISSUE_TEMPLATE/` | Bug and feature forms, and issue-report routing |
+| `.github/ISSUE_TEMPLATE/` | Bug report, feature request and issue routing templates |
 
-Root files are the conventional public documents, license, app HTML entry point and toolchain / build
-declarations. Code-module responsibilities are detailed in [architecture.md](architecture.md).
-
-A new directory needs one responsibility and a row here in the same change.
+A new directory requires a single responsibility and a row here in the same change.
 
 ## Writing rules
 
-- **One owner per fact.** Other documents link to it instead of repeating it.
-- **Current state only.** Documents describe how things are now. No plans, dated logs or "previously"
-  notes; history is in Git, pull requests and the changelog.
-- **Work items live in issues, not documents.** To-dos are open issues; accepted limitations carry the
-  `deferred` label and say why they wait and what would bring them back; open questions carry
-  `needs-decision`. Documents link to an issue or label instead of listing them.
-- **Verified, then written.** Facts about Antigravity or a platform are recorded only after checking them
-  on a real installation, with the version; anything unchecked is marked *not verified*.
-- **Language.** User and contributor documents are in English; `AGENTS.md` and `CLAUDE.md` are in Chinese,
-  the maintainers' working language. The two READMEs are kept in sync.
-- **Names.** Files and directories use lowercase kebab-case, except the conventional root files
-  (`README.md`, `AGENTS.md`, …) and names a language requires (Rust modules use snake_case).
-- **Nothing private.** No tokens, real accounts, emails or absolute paths from someone's machine; use
-  repository-relative paths and `<placeholder>`s.
-
-## Context layers
-
-| Layer | Loaded | Holds |
-|---|---|---|
-| `AGENTS.md` / `CLAUDE.md` | Every agent session | Boundaries that hold for every task, and routing |
-| `PRODUCT.md`, `docs/**` | When a task needs them | The full rules and facts |
-
-A rule lives in exactly one layer: `AGENTS.md` states the boundary and links to the owner of the detail.
+- **One owner per fact.** Other documents link to the owner.
+- **Current state only.** Describe how the codebase works now; history belongs in Git and `CHANGELOG.md`.
+- **Work items live in issues.** Use `deferred` for accepted limitations and `needs-decision` for open
+  questions.
+- **Verified, then written.** Record client and platform facts only after verifying on a real
+  installation with the version; mark unchecked behavior *not verified*.
+- **Language.** User and contributor docs are in English (`README.zh-CN.md` in Simplified Chinese);
+  `AGENTS.md` and `CLAUDE.md` are in Chinese.
+- **Names.** Lowercase kebab-case for files and directories, except conventional root files and
+  language-required module names.
+- **Nothing private.** Never commit tokens, real emails or machine-specific personal paths.

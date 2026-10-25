@@ -6,8 +6,7 @@ use serde::Deserialize;
 use crate::antigravity::install::Install;
 use crate::error::{Error, Result};
 
-/// The endpoint Antigravity 2.19.1 passes to its language server
-/// (`--cloud_code_endpoint`).
+/// Cloud Code endpoint passed to Antigravity's language server (`--cloud_code_endpoint`).
 const BASE: &str = "https://daily-cloudcode-pa.googleapis.com/v1internal";
 
 pub use crate::model::{GroupKey, Plan, PlanKind, QuotaGroup, QuotaWindow};
@@ -41,8 +40,7 @@ struct RawBucket {
     reset_time: Option<DateTime<Utc>>,
 }
 
-/// A per-refresh client: follows the installed product version without
-/// pinning a vendor version or letting a generic HTTP identity lose pools.
+/// Cloud Code client carrying the installed Antigravity version.
 pub struct Client<'a> {
     http: &'a reqwest::Client,
     user_agent: String,

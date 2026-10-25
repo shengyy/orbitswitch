@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
-/// Tokens closer than this to expiry are refreshed instead of reused.
+/// Refresh window before access token expiry.
 const MARGIN: Duration = Duration::from_secs(120);
 
 #[derive(Default)]

@@ -1,8 +1,8 @@
 // Renders the README and site screenshots from the real UI with demo data.
 //   bun scripts/screenshot/render.ts
 // Needs Google Chrome and ImageMagick (`magick`). Renders at 3x and writes
-// assets/screenshots/{hero,flow}-{light,dark}@3x.png (website, large displays)
-// plus a 2x copy without the suffix (README, website default).
+// assets/screenshots/{hero,flow,codex,claude}-{light,dark}@3x.png plus 2x
+// copies without the suffix.
 
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -151,4 +151,4 @@ try {
   server.stop(true);
   await Promise.all([site, profile, work].map((dir) => rm(dir, { recursive: true, force: true })));
 }
-console.log("wrote {hero,flow}-{light,dark}{,@3x}.png to assets/screenshots");
+console.log("wrote {hero,flow,codex,claude}-{light,dark}{,@3x}.png to assets/screenshots");

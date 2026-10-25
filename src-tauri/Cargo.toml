@@ -1,6 +1,6 @@
 [package]
 name = "orbitswitch"
-version = "0.2.0"
+version = "0.2.1"
 description = "Menu bar / tray accounts and quotas for Antigravity, Codex and Claude"
 authors = ["OrbitSwitch contributors"]
 license = "MIT"

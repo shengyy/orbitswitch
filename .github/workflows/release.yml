@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version to release, exactly as in src-tauri/Cargo.toml (for example 0.1.3)
+        description: Version to release, exactly as in src-tauri/Cargo.toml (for example 0.2.1)
         required: true
         type: string
 

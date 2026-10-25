@@ -1,10 +1,6 @@
-// Native context menus, so they look and behave like the platform's own.
-//
-// Every item is created as its own resource (MenuItem.new and friends)
-// instead of inline in Menu.new: Tauri 2.12 drops inline items as soon as the
-// menu is built, and dropping an item removes its click handler, so inline
-// items never respond. The resources behind the menu on screen are released
-// when the next menu opens.
+// Native context menus. Each item is kept as a live Resource until the next
+// menu opens because Tauri drops inline items and their click handlers once
+// Menu.new returns.
 
 import type { Resource } from "@tauri-apps/api/core";
 import { LogicalPosition } from "@tauri-apps/api/dpi";

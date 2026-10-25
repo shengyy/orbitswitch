@@ -1,5 +1,4 @@
-//! Adding, re-authorizing and removing accounts, and adopting a sign-in made
-//! inside Antigravity itself.
+//! Antigravity account sign-in, re-authorization, removal and live adoption.
 
 use std::sync::Arc;
 use std::time::Duration;

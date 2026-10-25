@@ -36,7 +36,7 @@ const pro = { kind: "pro", name: "Google AI Pro" };
 
 const snapshot = {
   platform: "macos",
-  version: "0.1.0",
+  version: "0.2.1",
   providers: ["antigravity", "codex", "claude"].map((provider) => ({
     provider,
     activeId: provider === "antigravity" ? "ada" : `${provider}-ada`,

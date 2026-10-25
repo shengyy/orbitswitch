@@ -185,3 +185,19 @@ pub struct Plan {
     pub kind: PlanKind,
     pub name: String,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ProcessKind {
+    App,
+    Helper,
+    LanguageServer,
+    Cli,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelatedProcess {
+    pub pid: u32,
+    pub kind: ProcessKind,
+}

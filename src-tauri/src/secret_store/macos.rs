@@ -1,10 +1,8 @@
-//! Keychain access through `/usr/bin/security`, exactly like go-keyring.
+//! Keychain access through `/usr/bin/security`, matching `go-keyring`.
 //!
-//! Going through the system tool keeps every item's ACL bound to
-//! `/usr/bin/security` instead of OrbitSwitch's own (ad-hoc, per-build) code
-//! signature, so neither OrbitSwitch updates nor Antigravity trigger keychain
-//! prompts. Writes are fed through `security -i` on stdin so secrets never
-//! appear in the process list.
+//! Calling the system tool binds each item's ACL to `/usr/bin/security`,
+//! avoiding keychain prompts across OrbitSwitch updates and Antigravity runs.
+//! Writes pass through `security -i` on stdin so secrets stay off the process list.
 
 use std::io::Write;
 use std::process::{Command, Stdio};

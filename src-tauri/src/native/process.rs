@@ -1,8 +1,8 @@
 //! Process changes are called only by confirmed account/process commands.
 use super::install::{Install, contains};
 use crate::{
-    antigravity::process::{ProcessKind, RelatedProcess},
     error::{Error, Result},
+    model::{ProcessKind, RelatedProcess},
     provider::Provider,
 };
 use std::time::{Duration, Instant};

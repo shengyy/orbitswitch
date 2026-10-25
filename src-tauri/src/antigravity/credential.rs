@@ -1,14 +1,5 @@
-//! The credential bundle Antigravity persists after a sign-in.
-//!
-//! Observed on Antigravity 2.19.1:
-//!
-//! ```json
-//! {"token":{"access_token":"…","token_type":"Bearer","refresh_token":"…","expiry":"2026-10-03T17:52:30.07+08:00"},
-//!  "auth_method":"consumer","id_token":"…"}
-//! ```
-//!
-//! `token` is golang.org/x/oauth2's `Token`. Unknown fields are kept so a
-//! newer Antigravity can add fields without OrbitSwitch dropping them.
+//! The credential bundle Antigravity persists after a sign-in (`token`,
+//! `auth_method`, `id_token`, plus any extra fields preserved round-trip).
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;

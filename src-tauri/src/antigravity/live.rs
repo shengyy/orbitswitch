@@ -54,7 +54,7 @@ fn write_private_file(path: &PathBuf, contents: &[u8]) -> Result<()> {
         .parent()
         .ok_or_else(|| Error::Invalid("credential path has no parent".into()))?;
     fs::create_dir_all(dir)?;
-    let tmp = dir.join(format!(".agyorbit-{}.tmp", std::process::id()));
+    let tmp = dir.join(format!(".orbitswitch-{}.tmp", std::process::id()));
     {
         let mut options = fs::OpenOptions::new();
         options.write(true).create(true).truncate(true);

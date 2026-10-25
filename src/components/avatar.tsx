@@ -7,7 +7,7 @@ interface Props {
   picture: string | null;
 }
 
-/** Google profile photo, or initials on a hue derived from the account id. */
+/** Profile photo, or initials on a hue derived from the account id. */
 export function Avatar({ id, label, picture }: Props) {
   const [failed, setFailed] = useState(false);
   if (picture && !failed) {

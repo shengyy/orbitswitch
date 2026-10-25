@@ -158,7 +158,7 @@ fn page(success: bool, chinese: bool) -> String {
             "Google did not grant access. Return to OrbitSwitch to try again.",
         ),
     };
-    let mark = if success { "#3b82f6" } else { "#f97316" };
+    let mark = if success { "#82aa98" } else { "#d97706" };
     format!(
         r#"<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} · OrbitSwitch</title>
 <style>
@@ -168,7 +168,7 @@ fn page(success: bool, chinese: bool) -> String {
 .card{{width:min(380px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.08)}}
 svg{{width:56px;height:56px;margin-bottom:16px}}h1{{font-size:20px;margin:0 0 6px;font-weight:650;letter-spacing:-.01em}}p{{margin:0;color:var(--muted)}}
 </style></head><body><main class="card">
-<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="10" fill="{mark}"/><ellipse cx="32" cy="32" rx="26" ry="11" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="3" transform="rotate(-24 32 32)"/><circle cx="54.5" cy="22" r="4.5" fill="{mark}"/></svg>
+<svg viewBox="0 0 36 36" aria-hidden="true"><path fill="{mark}" fill-rule="evenodd" d="M 20.97 2.28 A 16 16 0 0 1 33.1 23.29 A 1.24 1.24 0 0 1 31.31 23.95 L 28.86 22.53 A 1.24 1.24 0 0 1 28.29 21.11 A 10.75 10.75 0 0 0 20.46 7.53 A 1.24 1.24 0 0 1 19.5 6.33 L 19.5 3.5 A 1.24 1.24 0 0 1 20.97 2.28 Z M 30.13 28.43 A 16 16 0 0 1 5.87 28.43 A 1.24 1.24 0 0 1 6.19 26.55 L 8.64 25.14 A 1.24 1.24 0 0 1 10.16 25.36 A 10.75 10.75 0 0 0 25.84 25.36 A 1.24 1.24 0 0 1 27.36 25.14 L 29.81 26.55 A 1.24 1.24 0 0 1 30.13 28.43 Z M 2.9 23.29 A 16 16 0 0 1 15.03 2.28 A 1.24 1.24 0 0 1 16.5 3.5 L 16.5 6.33 A 1.24 1.24 0 0 1 15.54 7.53 A 10.75 10.75 0 0 0 7.71 21.11 A 1.24 1.24 0 0 1 7.14 22.53 L 4.69 23.95 A 1.24 1.24 0 0 1 2.9 23.29 Z M 17.28 12.77 L 23.15 11.95 A 2.5 2.5 0 0 1 25.61 15.75 L 22.48 20.79 A 5.28 5.28 0 1 1 17.28 12.77 Z M 20.18 18 A 2.18 2.18 0 1 0 15.82 18 A 2.18 2.18 0 1 0 20.18 18 Z"/></svg>
 <h1>{title}</h1><p>{detail}</p></main></body></html>"#
     )
 }

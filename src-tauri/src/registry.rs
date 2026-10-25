@@ -19,7 +19,6 @@ const VERSION: u32 = 1;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
-    /// Missing provider is the original Antigravity account schema.
     #[serde(default)]
     pub provider: Provider,
     #[serde(default)]
@@ -201,7 +200,7 @@ mod tests {
 
     #[test]
     fn upsert_keeps_order_and_known_fields() {
-        let dir = std::env::temp_dir().join(format!("agyorbit-registry-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("orbitswitch-registry-{}", std::process::id()));
         let mut registry = Registry::load(&dir).unwrap();
         registry.upsert(account("a", Some("Ada"))).unwrap();
         registry.upsert(account("b", None)).unwrap();

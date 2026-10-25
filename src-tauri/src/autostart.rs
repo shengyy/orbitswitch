@@ -17,8 +17,7 @@ fn launcher() -> Result<AutoLaunch> {
     {
         let exe = std::env::current_exe()?;
         builder
-            // Retain the installed Windows Run-key identity across the product rename.
-            .set_app_name("AgyOrbit")
+            .set_app_name("OrbitSwitch")
             .set_app_path(&exe.to_string_lossy())
             .set_args(&[crate::shell::BACKGROUND_ARG]);
     }

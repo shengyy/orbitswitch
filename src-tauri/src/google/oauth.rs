@@ -13,9 +13,7 @@ pub const AUTH_ENDPOINT: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 pub const TOKEN_ENDPOINT: &str = "https://oauth2.googleapis.com/token";
 const USERINFO_ENDPOINT: &str = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-/// The scopes Antigravity's own sign-in is granted (read back from Google's
-/// tokeninfo for an Antigravity 2.19.1 session). Requesting the same set
-/// makes OrbitSwitch's tokens equivalent to the IDE's.
+/// Scopes requested by Antigravity's OAuth sign-in.
 pub const SCOPES: [&str; 7] = [
     "openid",
     "email",

@@ -4,7 +4,7 @@
 <p align="center"><a href="README.zh-CN.md">简体中文</a> · <a href="https://shengyy.github.io/orbitswitch/">Website</a> · <a href="https://github.com/shengyy/orbitswitch/releases">Releases</a></p>
 
 A compact menu bar and system tray utility for **your own** Antigravity, Codex and Claude accounts.
-Three tabs, one consistent view of subscriptions, remaining quota and reset times.
+Three tabs, one view of subscriptions, remaining quota and reset times.
 
 <picture><source media="(prefers-color-scheme: dark)" srcset="assets/screenshots/hero-dark.png"><img src="assets/screenshots/hero-light.png" width="640" alt="OrbitSwitch's three platform tabs and fictional subscription accounts"></picture>
 
@@ -19,39 +19,35 @@ restores credentials on failure, and reopens the installed desktop app. Reopen C
 A failed refresh keeps the previous numbers with a stale label. Missing windows are never guessed.
 These are the coding clients' quotas, not Gemini or ChatGPT web-chat allowances.
 
-OrbitSwitch introduces the three-platform experience; older 0.1.x packages are the original
-Antigravity-only AgyOrbit. Codex and Claude identity/quota reads and Claude Desktop binding have been
-verified on macOS; real account switching and browser enrollment for these new adapters remain
-**not verified**. See the exact [verification scope](docs/status.md).
+Antigravity switching, Codex and Claude identity/quota reads, and Claude Desktop binding are verified
+on macOS; real Codex/Claude switching, browser enrollment and native Windows behavior remain
+**not verified**. See [docs/status.md](docs/status.md).
 
 ## Install and use
 
 macOS 26+ or Windows 10/11 x64. Install the official clients you want to manage; adding a Codex or
-Claude account requires its official CLI. Download a compatible build from
+Claude account requires its official CLI. Download from
 [Releases](https://github.com/shengyy/orbitswitch/releases).
 
-macOS builds use ad-hoc signing, without Apple notarization. If macOS blocks a trusted downloaded
-build, use **Open** from the context menu or `xattr -dr com.apple.quarantine /Applications/OrbitSwitch.app`.
+macOS builds are ad-hoc signed without Apple notarization. If Gatekeeper blocks first launch, choose
+**Open** from the context menu or run `xattr -dr com.apple.quarantine /Applications/OrbitSwitch.app`.
 Windows builds are unsigned; SmartScreen may require **More info → Run anyway**.
 
 1. Open OrbitSwitch from the menu bar or tray and choose a platform tab.
 2. **Add account** opens the official sign-in without changing your current client account.
    **Import** saves the account already signed in on this computer.
-3. For Claude Desktop, first sign into the same account and workspace in both Desktop and Claude Code,
-   then import. The card's **Link desktop** action explains this step.
+3. For Claude Desktop, sign into the same account and workspace in both Desktop and Claude Code,
+   then import.
 4. Pick another account, review the affected processes, and confirm the switch.
 
 The app menu offers Open at Login, logs, update checks and Quit. Updates restart OrbitSwitch only.
-The rename retains the existing application identifier and saved account storage.
 
 ## Local by design
 
-Credentials stay in the Rust backend and the OS credential store. Claude's paired desktop session is
-stored there too. The frontend receives account metadata and quota snapshots, never tokens or cookies.
-OrbitSwitch contacts official authentication/usage services and GitHub for updates. It has no account
-server, model proxy, automatic account rotation or telemetry. Read the [security inventory](SECURITY.md).
-
-Development: [CONTRIBUTING.md](CONTRIBUTING.md). Product rules: [PRODUCT.md](PRODUCT.md).
-Implementation and reference projects: [native integrations](docs/native-integrations.md).
+Credentials and paired desktop sessions stay in the Rust backend and the OS credential store. The
+frontend receives account metadata and quota snapshots only. OrbitSwitch contacts official
+authentication/usage endpoints and GitHub Releases for updates; there is no account server, model
+proxy, automatic rotation or telemetry. See [SECURITY.md](SECURITY.md), [PRODUCT.md](PRODUCT.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 MIT. Independent of Google, OpenAI and Anthropic; product names belong to their respective owners.

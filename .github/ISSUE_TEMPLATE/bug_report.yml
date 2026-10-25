@@ -11,7 +11,7 @@ body:
     attributes:
       label: OrbitSwitch version
       description: Shown at the top of the `⋯` menu.
-      placeholder: "0.1.0"
+      placeholder: "0.2.1"
     validations:
       required: true
   - type: input
@@ -22,10 +22,10 @@ body:
     validations:
       required: true
   - type: input
-    id: antigravity
+    id: client
     attributes:
-      label: Antigravity version
-      placeholder: "2.19.1"
+      label: Client and version
+      placeholder: "Antigravity 2.26.0 / Codex 0.164.0 / Claude Code 2.1.310"
     validations:
       required: true
   - type: textarea

@@ -8,9 +8,9 @@ use tauri_plugin_updater::UpdaterExt;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 
-const PAYLOAD: &[u8] = b"Synthetic AgyOrbit updater test payload\n";
-const PUBLIC_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEREOEFBOThFNTc0OUI3QTgKUldTb3QwbFhqcW1LM1JnS252eER0ZkNPZEs0TWVSR0EvV0RMdFRTTUgrUUk0NUlIWUE4MkUxSjkK";
-const SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTb3QwbFhqcW1LM2RyNUpJbmhzcFVGcjVVaXVTWjhCMFoxWUNyakp4NGtzM0J0Z1R4Q1ZMdTh3RWIwdFVPVnl5RzMycGlCQ2ovRU1nN0hKMTJSaUVmY2JQbHREZUszbXdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDk2NjcyCWZpbGU6cGF5bG9hZAl2ZXJzaW9uOjk5LjAuMAo1Q2FGWjdRa052SHFhUEx5Z1U5enJWQ0VkWlQzTExMNnkzdllSS00wOHVib2E4WEdWQmFaSnUyTnUwUjFNYnh0YVRVbUpwQUJsTXBlb1RWdFduMFZEZz09Cg==";
+const PAYLOAD: &[u8] = b"Synthetic OrbitSwitch updater test payload\n";
+const PUBLIC_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM4NERFQjBBQzUwODVFOTEKUldTUlhnakZDdXROeUs4RDlOcFVodHNvNzJvTi9ONjRsTHZCNVpMdCsrUzBUaXJyVXF2STZSbjUK";
+const SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTUlhnakZDdXROeUJCb0htRzNhTHFyNEl0b2NmazEyTlZZS3h5WkhSenZJZ2FpdTN1eWFNSXlmUkhsWEVJZ1ZXQmJpdHh4U1NQNmxNSm9jUlV3MVlraVpubEc2VHJrZ2cwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyOTI3MjM2CWZpbGU6cGF5bG9hZAl2ZXJzaW9uOjk5LjAuMAovTExwNnBveGRnSllwOCtGRkJzMk1MYjVpL2xLQ2RLajRBdUo5YU44eHRZVVJBdDZwN2R0ZTExWWEvZHFxd3VCSVlqdXJVcW5aWW9wdXNQR3QvdTVDQT09Cg==";
 
 struct Server {
     endpoint: url::Url,
@@ -156,13 +156,13 @@ fn production_configuration_requires_https_and_version_bound_signatures() {
 #[test]
 fn unbundled_executables_cannot_replace_their_build_directory() {
     assert!(!super::is_macos_bundle(std::path::Path::new(
-        "target/debug/agyorbit"
+        "target/debug/orbitswitch"
     )));
     assert!(!super::is_macos_bundle(std::path::Path::new(
-        "build/Contents/MacOS/agyorbit"
+        "build/Contents/MacOS/orbitswitch"
     )));
     assert!(super::is_macos_bundle(std::path::Path::new(
-        "AgyOrbit.app/Contents/MacOS/agyorbit"
+        "OrbitSwitch.app/Contents/MacOS/orbitswitch"
     )));
 }
 
@@ -170,11 +170,13 @@ fn unbundled_executables_cannot_replace_their_build_directory() {
 #[tokio::test]
 async fn macos_installer_replaces_only_an_isolated_test_bundle() {
     use base64::Engine;
-    const ARCHIVE_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVDM0JFRURDQUNFNTkzMzEKUldReGsrV3MzTzQ3WEovNks0L0cyUG9uSFkrZ1poOHZMOXFKRVBWOGhlV0MwaVFVTisxVUQ5MXgK";
-    const ARCHIVE_SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVReGsrV3MzTzQ3WEtSYklFQ1NDRCt2ZHVlS2t3Sk1pcml6a0haejBFS0hVNGF0aGlXanIzUERlbVkrZERrMFY0MURkbmQwOVFpRTAwalZtc3R6QkxiNlRjQkJjUzZFakFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkxMDk3MDMzCWZpbGU6dXBkYXRlZC5hcHAudGFyLmd6CXZlcnNpb246OTkuMC4wClNENndxZDhIU1Jqb0VrdW9PeFlzdTY4NlFYMDdCTFgvclcxZ0VuZ1Fnc3dNK1dCV0NOOUthUVU2ajRHdkY0dW03dE1FeitHSDhqVGNBMG8zemZDUkNRPT0K";
-    const ARCHIVE: &str = "H4sICMn4wWoC/3VwZGF0ZWQuYXBwLnRhcgDt0jEOwjAMheEcJScgATUwI2bUgROENipd0qhxh9y+KQsSKxJC4v+WZz0PXnweSjvfR9n5lMxlihKiZHP1XXszfijTtlMfstXJuWdW72ntwb3mrd83rjkqbdUXLFn8XM+r/5RLlEeQsdNL6r2EXtdHUAAAAAAAAAAAAAAAAACAX7cCPdUQAAAoAAA=";
+    const ARCHIVE_KEY: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEYxQTI5MTk1OEU5NDNERDkKUldUWlBaU09sWkdpOFZWZm02K0NpeGttRnNIYThMMVpaKzJKTnFScDBPNU1hK2FzdlJEZHJFNTcK";
+    const ARCHIVE_SIGNATURE: &str = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUWlBaU09sWkdpOFFIQ2phZndycmNidlBOSVg1ajQrUC9EQ0FFaTBPeDJZbHd3Z1lCY3piTTA3TFdmMWgrRHhQN3hWc0VyYUZiWGd3bnJhUjFNc09GTktUaG1YVmJpQXdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyOTI3MjQ5CWZpbGU6dXBkYXRlZC5hcHAudGFyLmd6CXZlcnNpb246OTkuMC4wCnBienVSQUovWnhzOEMyOGFjemxjZTZEdEtBQkVtQ1k5QlZtR1lyVXNTc0pFVCtSM2tqRDZwV2xHNW1Gdmh0M0VUalhNYWtjRFIrZkhvZTBCSlJCaUF3PT0K";
+    const ARCHIVE: &str = "H4sICBDm3WoA/3VwZGF0ZWQuYXBwLnRhcgDt0jEOwjAMheEeJScgKVLgAMyoQ0+QppHaJY0aV4jbk3ZBYgF1AIb/W2zZw/PgZu5GaW+j+OHgUtKXKUqIkvXV+abV07rO27razRRna7davFZjjvbZr/P6ZGpTKbM/8nNLFjeX+G9k/aF8jzIEGb1aUu8k9Kp8wa+PAgAAAAAAAAAAAAAAAAC89QDBlMFIACgAAA==";
     let root = tempfile::tempdir().unwrap();
-    let executable = root.path().join("AgyOrbit.app/Contents/MacOS/agyorbit");
+    let executable = root
+        .path()
+        .join("OrbitSwitch.app/Contents/MacOS/orbitswitch");
     std::fs::create_dir_all(executable.parent().unwrap()).unwrap();
     std::fs::write(&executable, b"synthetic old app").unwrap();
     let account_file = root.path().join("accounts.json");
@@ -212,10 +214,10 @@ async fn macos_installer_replaces_only_an_isolated_test_bundle() {
 }
 
 #[tokio::test]
-#[ignore = "requires downloaded release artifacts in AGYORBIT_RELEASE_DIR"]
+#[ignore = "requires downloaded release artifacts in ORBITSWITCH_RELEASE_DIR"]
 async fn release_artifacts_verify() {
     let directory = std::path::PathBuf::from(
-        std::env::var_os("AGYORBIT_RELEASE_DIR").expect("set AGYORBIT_RELEASE_DIR"),
+        std::env::var_os("ORBITSWITCH_RELEASE_DIR").expect("set ORBITSWITCH_RELEASE_DIR"),
     );
     let manifest: serde_json::Value =
         serde_json::from_slice(&std::fs::read(directory.join("latest.json")).unwrap()).unwrap();
@@ -303,8 +305,8 @@ async fn local_signed_bundle_installs() {
     let server =
         Server::with_artifact(env!("CARGO_PKG_VERSION"), &bytes, "200 OK", &signature).await;
     let root = tempfile::tempdir().unwrap();
-    let bundle = root.path().join("AgyOrbit.app");
-    let executable = bundle.join("Contents/MacOS/agyorbit");
+    let bundle = root.path().join("OrbitSwitch.app");
+    let executable = bundle.join("Contents/MacOS/orbitswitch");
     std::fs::create_dir_all(executable.parent().unwrap()).unwrap();
     std::fs::write(&executable, b"synthetic old app").unwrap();
     let account_file = root.path().join("accounts.json");

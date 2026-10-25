@@ -1,4 +1,4 @@
-//! OrbitSwitch: switch Google Antigravity accounts from the menu bar or tray.
+//! OrbitSwitch: switch Antigravity, Codex and Claude accounts from the menu bar or tray.
 
 mod accounts;
 mod antigravity;

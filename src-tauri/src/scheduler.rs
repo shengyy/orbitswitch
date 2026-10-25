@@ -1,4 +1,4 @@
-//! Background upkeep: follow Antigravity's sign-in and keep quotas fresh.
+//! Background upkeep: follow client sign-ins and keep quotas fresh.
 
 use std::sync::Arc;
 use std::time::Duration;

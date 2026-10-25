@@ -231,11 +231,10 @@ const I18N = {
     "nav.install": "安装",
     "nav.faq": "常见问题",
     "nav.lang": "EN",
-    "nav.langLabel": "Switch website language to English",
     "hero.eyebrow": "三个平台，一个轻巧的切换器。",
     "hero.title": "切账号，看额度，不断流。",
     "hero.lede":
-      "OrbitSwitch 常驻 macOS 菜单栏与 Windows 系统托盘，在 Gemini（Antigravity）、ChatGPT（Codex）、Claude（Claude Code）三个标签下管理你的多个本人账号：一眼看清订阅套餐、实际额度窗口及重置时间，确认后再安全切换。",
+      "OrbitSwitch 常驻 macOS 菜单栏与 Windows 系统托盘，在 Gemini（Antigravity）、ChatGPT（Codex）、Claude（Claude Desktop 与 Claude Code）三个标签下管理你的多个本人账号：一眼看清订阅套餐、实际额度窗口及重置时间，确认后再安全切换。",
     "hero.pillar1.title": "Switch accounts",
     "hero.pillar1.desc": "添加本人账号，关联客户端，确认后切换。",
     "hero.pillar2.title": "See quota",
@@ -262,12 +261,12 @@ const I18N = {
     "platforms.gemini.p3":
       "确认后依次校验目标授权、结束 Antigravity 与 agy CLI、写入并校验新凭据，失败自动恢复原登录。",
     "platforms.chatgpt.sub": "OpenAI Codex 桌面端与 codex CLI",
-    "platforms.chatgpt.status": "身份与额度读取已验证 · 切换 beta",
+    "platforms.chatgpt.status": "身份与额度读取已验证 · 切换未验证",
     "platforms.chatgpt.p1": "按本人账号管理 ChatGPT Plus / Pro 订阅下的 Codex 编程额度窗口。",
     "platforms.chatgpt.p2": "按实际返回展示额度与恢复时间；仅有周限额的账号不显示 5 小时窗口。",
     "platforms.chatgpt.p3": "经用户确认后同步切换本地 Codex 桌面端与 codex CLI 凭据。",
-    "platforms.claude.sub": "Anthropic Claude Code 与 claude CLI",
-    "platforms.claude.status": "桌面关联验证通过 · 切换 beta",
+    "platforms.claude.sub": "Anthropic Claude Desktop 与 Claude Code",
+    "platforms.claude.status": "桌面关联已验证 · 切换未验证",
     "platforms.claude.p1": "管理多个本人 Claude Pro / Max 账号，清晰区分当前使用与余量最多账号。",
     "platforms.claude.p2": "展示共享额度与服务端返回的模型周限额，各窗口分别显示剩余额度和重置时间。",
     "platforms.claude.p3": "确认后切换本地 Claude Code 与桌面端凭据，异常时保留原账号不丢失。",
@@ -326,7 +325,7 @@ const I18N = {
     "faq.q3": "Gemini 网页版或 ChatGPT 聊天额度与这里的额度是一回事吗？",
     "faq.a3":
       "不是。OrbitSwitch 读取的是各编程客户端（Antigravity、Codex、Claude Code）对应的速率限制窗口（5 小时与周度余量），不代表网页端日常对话配额。",
-    "faq.q4": "为什么切换账号时需要确认，而不是无感热切换？",
+    "faq.q4": "确认切换账号时会发生什么？",
     "faq.a4":
       "确认后会关闭受影响的桌面与 CLI 进程，写入并验证账号，再打开桌面应用。CLI 会话需手动重开；凭据写入或校验失败会恢复原登录。",
     "faq.q5": "目前各平台与客户端的验证进度如何？",
@@ -335,6 +334,7 @@ const I18N = {
     "footer.source": "GitHub 源码",
     "footer.releases": "版本发布",
     "footer.security": "安全说明",
+    "footer.status": "验证状态",
     "footer.readmeZh": "中文文档",
     "footer.fine":
       "OrbitSwitch 是独立的开源项目（MIT License），与 Google、OpenAI 或 Anthropic 无隶属或背书关系。Antigravity、Gemini、ChatGPT、Codex、Claude 及 Claude Code 均为各自所有者的商标。",

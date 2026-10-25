@@ -18,7 +18,7 @@ use crate::antigravity::install::Install;
 use crate::error::{Error, Result};
 use crate::google::oauth::TOKEN_ENDPOINT;
 
-/// The consumer sign-in client (the `aud` of Antigravity 2.19.1 ID tokens).
+/// Antigravity's OAuth 2.0 installed-app client ID.
 pub const CLIENT_ID: &str =
     "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com";
 
@@ -64,7 +64,7 @@ async fn pairs_with_client(http: &reqwest::Client, secret: &str) -> Result<bool>
         .post(TOKEN_ENDPOINT)
         .form(&[
             ("grant_type", "authorization_code"),
-            ("code", "agyorbit-client-probe"),
+            ("code", "orbitswitch-client-probe"),
             ("redirect_uri", "http://127.0.0.1"),
             ("client_id", CLIENT_ID),
             ("client_secret", secret),
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn finds_secrets_across_chunk_boundaries() {
-        let dir = std::env::temp_dir().join(format!("agyorbit-scan-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("orbitswitch-scan-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("bin");
         // Built at runtime so the source never contains a secret-shaped literal.

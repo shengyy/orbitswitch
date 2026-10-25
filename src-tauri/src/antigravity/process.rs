@@ -8,32 +8,16 @@
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-use serde::Serialize;
 use sysinfo::{Pid, Process, ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 use crate::antigravity::install::Install;
 use crate::error::{Error, Result};
+pub use crate::model::{ProcessKind, RelatedProcess};
 
 const GRACEFUL_TIMEOUT: Duration = Duration::from_secs(8);
 const FORCE_TIMEOUT: Duration = Duration::from_secs(3);
 const LAUNCH_TIMEOUT: Duration = Duration::from_secs(15);
 const POLL: Duration = Duration::from_millis(250);
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub enum ProcessKind {
-    App,
-    Helper,
-    LanguageServer,
-    Cli,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RelatedProcess {
-    pub pid: u32,
-    pub kind: ProcessKind,
-}
 
 fn snapshot() -> System {
     let mut system = System::new();

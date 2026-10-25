@@ -7,9 +7,9 @@ use std::time::Duration;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_opener::OpenerExt;
 
-use crate::antigravity::process::{self, RelatedProcess};
+use crate::antigravity::process;
 use crate::error::{Error, Result};
-use crate::model::{Snapshot, UpdateInfo};
+use crate::model::{RelatedProcess, Snapshot, UpdateInfo};
 use crate::state::Orbit;
 use crate::{accounts, autostart, quota, scheduler, shell, switcher, updater};
 use crate::{native, provider::Provider};
