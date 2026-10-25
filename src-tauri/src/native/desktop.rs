@@ -1,10 +1,9 @@
 //! Claude's desktop browser sign-in is separate from its CLI OAuth credential.
 //! Capture only authentication cookies, never history, projects or settings.
 use super::storage;
-use crate::{
-    error::{Error, Result},
-    secret_store,
-};
+use crate::error::{Error, Result};
+#[cfg(target_os = "macos")]
+use crate::secret_store;
 use base64::{Engine, engine::general_purpose::STANDARD};
 use rusqlite::{
     Connection, OpenFlags,
