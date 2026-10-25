@@ -38,6 +38,11 @@ Source inspection is not an end-to-end switch test. See [status](status.md).
   Its returned user/workspace IDs must match before attaching quota or applying a sign-in.
 - `rate_limit`, `code_review_rate_limit` and `additional_rate_limits` carry independent windows.
   Preserve `limit_window_seconds`; remaining share is `1 - used_percent / 100`. Read `plan_type`.
+  Window duration, not `primary_window` / `secondary_window` position or plan name, determines the
+  label. A weekly-only response produces only a weekly meter. No five-hour window is synthesized.
+  Recommendations compare accounts with matching reported window durations. The
+  [official plan guide](https://learn.chatgpt.com/docs/pricing) currently distinguishes Pro without
+  five-hour limits from Plus and Standard Business; the API response remains the source of truth.
 - Inactive-token refresh uses the official public OAuth client and `https://auth.openai.com/oauth/token`.
   No internal-only `chatgptAuthTokens` app-server protocol is used.
 

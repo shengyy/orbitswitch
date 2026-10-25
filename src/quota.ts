@@ -10,7 +10,7 @@ export function severity(remaining: number): Severity {
   return "ok";
 }
 
-/** What is usable right now: the tighter of the 5-hour and weekly windows. */
+/** The tightest reported window; absent windows do not imply zero or unlimited quota. */
 export function available(group: QuotaGroup): number | null {
   const windows = [group.fiveHour, group.weekly, ...group.extra].filter((w): w is QuotaWindow => w !== null);
   return windows.length ? Math.min(...windows.map((w) => w.remaining)) : null;

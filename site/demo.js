@@ -111,7 +111,7 @@ const PLATFORMS = {
           {
             label: "Codex",
             models: "Shared Codex coding pool",
-            fiveHour: { remaining: 0.18, resetEn: "1h 45m", resetZh: "1 小时 45 分" },
+            fiveHour: null,
             weekly: { remaining: 0.64, resetEn: "3d 12h", resetZh: "3 天 12 小时" },
           },
         ],
@@ -125,7 +125,7 @@ const PLATFORMS = {
           {
             label: "Codex",
             models: "Shared Codex coding pool",
-            fiveHour: { remaining: 0.96, resetEn: "4h 40m", resetZh: "4 小时 40 分" },
+            fiveHour: null,
             weekly: { remaining: 0.91, resetEn: "6d 02h", resetZh: "6 天 2 小时" },
           },
         ],
@@ -138,7 +138,7 @@ const PLATFORMS = {
         groups: [
           {
             label: "Codex",
-            models: "codex-1, GPT-5 coding windows",
+            models: "Shared Codex coding pool",
             fiveHour: { remaining: 0.52, resetEn: "2h 15m", resetZh: "2 小时 15 分" },
             weekly: { remaining: 0.44, resetEn: "2d 08h", resetZh: "2 天 8 小时" },
           },
@@ -235,11 +235,11 @@ const I18N = {
     "hero.eyebrow": "三个平台，一个轻巧的切换器。",
     "hero.title": "切账号，看额度，不断流。",
     "hero.lede":
-      "OrbitSwitch 常驻 macOS 菜单栏与 Windows 系统托盘，在 Gemini（Antigravity）、ChatGPT（Codex）、Claude（Claude Code）三个标签下管理你的多个本人账号：一眼看清订阅套餐、5 小时与周度剩余额度及重置时间，确认后再安全切换。",
+      "OrbitSwitch 常驻 macOS 菜单栏与 Windows 系统托盘，在 Gemini（Antigravity）、ChatGPT（Codex）、Claude（Claude Code）三个标签下管理你的多个本人账号：一眼看清订阅套餐、实际额度窗口及重置时间，确认后再安全切换。",
     "hero.pillar1.title": "Switch accounts",
     "hero.pillar1.desc": "添加本人账号，关联客户端，确认后切换。",
     "hero.pillar2.title": "See quota",
-    "hero.pillar2.desc": "并排展示 5 小时与周度窗口剩余比例、重置倒计时与推荐账号。",
+    "hero.pillar2.desc": "按账号实际窗口展示剩余比例、重置倒计时与推荐账号。",
     "hero.pillar3.title": "Stay in flow",
     "hero.pillar3.desc": "切换前先校验授权并点名受影响进程，写入失败自动回滚原凭据。",
     "hero.dlMac": "下载 macOS 版",
@@ -264,7 +264,7 @@ const I18N = {
     "platforms.chatgpt.sub": "OpenAI Codex 桌面端与 codex CLI",
     "platforms.chatgpt.status": "身份与额度读取已验证 · 切换 beta",
     "platforms.chatgpt.p1": "按本人账号管理 ChatGPT Plus / Pro 订阅下的 Codex 编程额度窗口。",
-    "platforms.chatgpt.p2": "直观查看 5 小时与周度剩余额度及恢复时间，低余量窗口自动高亮提醒。",
+    "platforms.chatgpt.p2": "按实际返回展示额度与恢复时间；仅有周限额的账号不显示 5 小时窗口。",
     "platforms.chatgpt.p3": "经用户确认后同步切换本地 Codex 桌面端与 codex CLI 凭据。",
     "platforms.claude.sub": "Anthropic Claude Code 与 claude CLI",
     "platforms.claude.status": "桌面关联验证通过 · 切换 beta",
@@ -358,19 +358,24 @@ function severity(remaining) {
 }
 
 function bestAccountId(accounts, activeId) {
+  const windows = (group) => [group.fiveHour, group.weekly].filter(Boolean);
+  const shape = (acc) =>
+    acc.groups
+      .map((g) => `${g.label}:${g.fiveHour ? "5h" : ""}:${g.weekly ? "week" : ""}`)
+      .sort()
+      .join("|");
   const score = (acc) => {
-    let min = 1;
-    for (const g of acc.groups) {
-      min = Math.min(min, g.fiveHour.remaining, g.weekly.remaining);
-    }
-    return min;
+    const available = (g) => Math.min(...windows(g).map((w) => w.remaining));
+    const primary = acc.groups.find((g) => g.label !== "Gemini");
+    const gemini = acc.groups.find((g) => g.label === "Gemini");
+    return available(primary ?? gemini) + (gemini ? available(gemini) / 1000 : 0);
   };
   const active = accounts.find((a) => a.id === activeId);
   const activeScore = active ? score(active) : 0;
   let bestId = null;
-  let bestScore = activeScore + 0.15;
+  let bestScore = activeScore + 0.05;
   for (const acc of accounts) {
-    if (acc.id === activeId) continue;
+    if (acc.id === activeId || (active && shape(acc) !== shape(active))) continue;
     const s = score(acc);
     if (s > bestScore) {
       bestScore = s;
@@ -383,14 +388,14 @@ function bestAccountId(accounts, activeId) {
 function lowRecoveryHint(account, lang) {
   const candidates = [];
   for (const group of account.groups) {
-    if (group.fiveHour.remaining < 0.35) {
+    if (group.fiveHour && group.fiveHour.remaining < 0.35) {
       candidates.push({
         label: `${group.label} ${lang === "zh" ? "5 小时" : "5h"}`,
         remaining: group.fiveHour.remaining,
         reset: lang === "zh" ? group.fiveHour.resetZh : group.fiveHour.resetEn,
       });
     }
-    if (group.weekly.remaining < 0.35) {
+    if (group.weekly && group.weekly.remaining < 0.35) {
       candidates.push({
         label: `${group.label} ${lang === "zh" ? "本周" : "Week"}`,
         remaining: group.weekly.remaining,
@@ -517,30 +522,25 @@ function renderDemo() {
 
         const rowsHtml = acc.groups
           .map((g) => {
-            const fivePct = Math.round(g.fiveHour.remaining * 100);
-            const weekPct = Math.round(g.weekly.remaining * 100);
-            const fiveSev = severity(g.fiveHour.remaining);
-            const weekSev = severity(g.weekly.remaining);
-            const fiveReset =
-              lang === "zh" ? `${g.fiveHour.resetZh}后重置` : `Resets in ${g.fiveHour.resetEn}`;
-            const weekReset = lang === "zh" ? `${g.weekly.resetZh}后重置` : `Resets in ${g.weekly.resetEn}`;
+            const meters = [
+              [fiveLabel, g.fiveHour],
+              [weekLabel, g.weekly],
+            ]
+              .filter(([, window]) => window)
+              .map(([label, window]) => {
+                const pct = Math.round(window.remaining * 100);
+                const reset = lang === "zh" ? `${window.resetZh}后重置` : `Resets in ${window.resetEn}`;
+                return `<div class="demo-meter demo-meter-${severity(window.remaining)}" title="${reset}">
+                  <span class="demo-meter-label">${label}</span>
+                  <span class="demo-meter-track"><span class="demo-meter-fill" style="width: ${pct}%"></span></span>
+                  <span class="demo-meter-value">${pct}%</span>
+                </div>`;
+              })
+              .join("");
             return `
               <div class="demo-quota-row" title="${g.models}">
                 <span class="demo-quota-group">${g.label}</span>
-                <div class="demo-meter demo-meter-${fiveSev}" title="${fiveReset}">
-                  <span class="demo-meter-label">${fiveLabel}</span>
-                  <span class="demo-meter-track">
-                    <span class="demo-meter-fill" style="width: ${fivePct}%"></span>
-                  </span>
-                  <span class="demo-meter-value">${fivePct}%</span>
-                </div>
-                <div class="demo-meter demo-meter-${weekSev}" title="${weekReset}">
-                  <span class="demo-meter-label">${weekLabel}</span>
-                  <span class="demo-meter-track">
-                    <span class="demo-meter-fill" style="width: ${weekPct}%"></span>
-                  </span>
-                  <span class="demo-meter-value">${weekPct}%</span>
-                </div>
+                ${meters}
               </div>
             `;
           })

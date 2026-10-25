@@ -16,7 +16,10 @@ const group = (key, label, models, [fiveHour, weekly, fiveReset, weekReset]) => 
   key,
   label,
   models,
-  fiveHour: { remaining: fiveHour, resetAt: at(fiveReset), label: "5h", durationMinutes: 300 },
+  fiveHour:
+    fiveHour === null
+      ? null
+      : { remaining: fiveHour, resetAt: at(fiveReset), label: "5h", durationMinutes: 300 },
   weekly: { remaining: weekly, resetAt: at(weekReset), label: "weekly", durationMinutes: 10080 },
   extra: [],
 });
@@ -89,13 +92,18 @@ const snapshot = {
 };
 
 for (const p of ["codex", "claude"]) {
-  const samples = snapshot.accounts.filter((account) => account.provider === "antigravity").slice(0, 2);
+  const samples = snapshot.accounts
+    .filter((account) => account.provider === "antigravity")
+    .slice(0, p === "codex" ? 3 : 2);
   snapshot.accounts.push(
     ...samples.map((account, index) => ({
       ...account,
       id: `${p}-${account.id}`,
       provider: p,
-      plan: { kind: p === "codex" ? "plus" : "max", name: p === "codex" ? "ChatGPT Plus" : "Claude Max" },
+      plan:
+        p === "codex"
+          ? { kind: index < 2 ? "pro" : "plus", name: index < 2 ? "ChatGPT Pro" : "ChatGPT Plus" }
+          : { kind: "max", name: "Claude Max" },
       quota: {
         status: "ready",
         stale: false,
@@ -105,7 +113,11 @@ for (const p of ["codex", "claude"]) {
             p,
             p === "codex" ? "Codex" : "Claude",
             [],
-            index ? [0.94, 0.83, HOUR, 96 * HOUR] : [0.08, 0.41, HOUR, 96 * HOUR],
+            p === "codex" && index < 2
+              ? [null, index ? 0.83 : 0.08, 0, 96 * HOUR]
+              : index
+                ? [0.94, 0.83, HOUR, 96 * HOUR]
+                : [0.08, 0.41, HOUR, 96 * HOUR],
           ),
         ],
       },
@@ -115,7 +127,7 @@ for (const p of ["codex", "claude"]) {
 if (scene === "stale") {
   const account = snapshot.accounts.find((a) => a.provider === provider);
   account.quota.stale = true;
-  account.quota.groups[0].fiveHour.remaining = 0;
+  (account.quota.groups[0].fiveHour ?? account.quota.groups[0].weekly).remaining = 0;
 }
 if (scene === "empty")
   snapshot.accounts = snapshot.accounts.filter((account) => account.provider !== provider);

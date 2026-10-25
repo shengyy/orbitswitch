@@ -15,6 +15,8 @@ All notable changes to OrbitSwitch are documented here. The format follows
   switching. Claude Desktop is paired with Claude Code by verified account and workspace identity.
 - Native credential rollback and identity checks, stale-quota labels, model scopes and additional
   limit durations. Active clients retain ownership of their token refresh.
+- Codex quota windows follow the provider response, including weekly-only accounts. Only comparable
+  windows participate in account recommendations; the website demo follows the same rule.
 - A redesigned bilingual website with a fictional interactive three-platform demo and accurate
   release download status.
 

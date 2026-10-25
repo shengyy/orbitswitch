@@ -30,7 +30,7 @@ function Meter({ label, window }: { label: string; window: QuotaWindow | null })
   );
 }
 
-/** One model group: its 5-hour and weekly windows side by side. */
+/** One model group, displaying only the windows reported by its provider. */
 export function QuotaRow({ group }: { group: QuotaGroup }) {
   return (
     <div

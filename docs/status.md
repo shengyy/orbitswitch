@@ -26,10 +26,12 @@ verified.
   enrollment are **not verified**. No installed client's credential was rewritten for these probes.
 - Synthetic tests cover native CLI-file rollback, preserving unrelated settings and cookies, rejecting
   cookie-schema drift before deletion, failed rollback reporting, missing quota vs. zero and scoped
-  limit deduplication. These tests do not replace a real client switch.
+  limit deduplication, Codex weekly-only and dual-window responses, and recommendations across
+  compatible windows. These tests do not replace a real client switch.
 - Browser checks with fictional accounts passed for all three tabs in both languages and appearances,
   including confirmation routing, stale/empty/binding states and narrow layouts. The website passed
-  desktop and mobile layout, language and interactive-demo checks.
+  desktop and mobile layout, language and interactive-demo checks. App and website checks also cover
+  Pro weekly-only and Plus dual-window fixtures, without inventing absent windows.
 - Native Windows behavior is **not verified**. Standard installer paths are detected; Store/MSIX,
   independently configured profiles and app-bound cookie encryption are unsupported. CI compilation
   does not establish real account switching on Windows.

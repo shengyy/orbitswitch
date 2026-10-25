@@ -399,6 +399,53 @@ mod tests {
         assert_eq!(g[0].extra[0].duration_minutes, Some(15));
     }
     #[test]
+    fn codex_weekly_only_is_not_a_five_hour_limit() {
+        for field in ["primary_window", "secondary_window"] {
+            for plan in ["pro", "plus", "business", "unknown"] {
+                let mut usage = serde_json::json!({
+                    "plan_type": plan,
+                    "rate_limit": {"primary_window": null, "secondary_window": null}
+                });
+                usage["rate_limit"][field] = serde_json::json!({
+                    "used_percent": 75,
+                    "limit_window_seconds": 604800,
+                    "reset_at": 1800000000
+                });
+                let g = groups(Provider::Codex, &usage);
+                assert_eq!(g.len(), 1);
+                assert!(g[0].five_hour.is_none());
+                assert!(g[0].extra.is_empty());
+                let weekly = g[0].weekly.as_ref().unwrap();
+                assert_eq!(weekly.remaining, 0.25);
+                assert_eq!(weekly.duration_minutes, Some(10080));
+                assert_eq!(weekly.reset_at.unwrap().timestamp(), 1800000000);
+            }
+        }
+    }
+    #[test]
+    fn codex_dual_windows_follow_duration_not_slot_order() {
+        for (primary, secondary) in [(18000, 604800), (604800, 18000)] {
+            let g = groups(
+                Provider::Codex,
+                &serde_json::json!({
+                    "plan_type": "plus",
+                    "rate_limit": {
+                        "primary_window": {"used_percent": 0, "limit_window_seconds": primary},
+                        "secondary_window": {"used_percent": 100, "limit_window_seconds": secondary}
+                    }
+                }),
+            );
+            assert_eq!(g.len(), 1);
+            assert_eq!(g[0].five_hour.as_ref().unwrap().duration_minutes, Some(300));
+            assert_eq!(g[0].weekly.as_ref().unwrap().duration_minutes, Some(10080));
+            assert_eq!(
+                g[0].five_hour.as_ref().unwrap().remaining,
+                if primary == 18000 { 1.0 } else { 0.0 }
+            );
+            assert!(g[0].extra.is_empty());
+        }
+    }
+    #[test]
     fn claude_scoped_limits_do_not_duplicate_legacy() {
         let g = groups(
             Provider::Claude,
