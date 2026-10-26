@@ -9,8 +9,10 @@ use crate::registry::Account;
 struct MemoryCredentials {
     values: RefCell<BTreeMap<(String, String), String>>,
     fail_set: RefCell<Option<String>>,
+    fail_read: RefCell<bool>,
     fail_delete: RefCell<Option<String>>,
     corrupt_write: RefCell<bool>,
+    rotate_source_after_set: RefCell<bool>,
 }
 
 impl MemoryCredentials {
@@ -23,6 +25,9 @@ impl MemoryCredentials {
 
 impl Credentials for MemoryCredentials {
     fn get(&self, service: &str, id: &str) -> Result<Option<String>> {
+        if *self.fail_read.borrow() {
+            return Err(Error::SecretStore("synthetic read failure".into()));
+        }
         Ok(self
             .values
             .borrow()
@@ -43,6 +48,9 @@ impl Credentials for MemoryCredentials {
                 value
             },
         );
+        if self.rotate_source_after_set.replace(false) {
+            self.put(PREVIOUS_SERVICE, id, &format!("rotated-{id}"));
+        }
         Ok(())
     }
 
@@ -121,8 +129,8 @@ fn fresh_install_does_not_create_a_registry_or_touch_credentials() {
 }
 
 #[test]
-fn original_google_schema_is_consumed_through_the_production_startup_path() {
-    let stores = Stores::new();
+fn original_google_schema_without_provider_is_transferred_with_its_grant() {
+    let mut stores = Stores::new();
     let mut original = account("ada", Provider::Antigravity);
     original.desktop_ready = false;
     let mut json = serde_json::to_value(&original).unwrap();
@@ -135,12 +143,31 @@ fn original_google_schema_is_consumed_through_the_production_startup_path() {
             .as_bytes(),
     )
     .unwrap();
+    stores
+        .credentials
+        .put(PREVIOUS_SERVICE, "ada", "original-grant");
+    stores.run().unwrap();
+    assert_eq!(stores.current.accounts()[0].provider, Provider::Antigravity);
+    assert_eq!(
+        stores
+            .credentials
+            .get(vault::SERVICE, "ada")
+            .unwrap()
+            .as_deref(),
+        Some("original-grant")
+    );
+    assert!(!stores.previous.path.exists());
+}
+
+#[test]
+fn production_startup_discovers_the_previous_directory() {
+    let mut stores = Stores::new();
     // Exercise real path discovery without accessing the system vault.
-    // A native-only source has no Google entries to copy.
-    let mut native = Registry::read(stores.previous.path.parent().unwrap()).unwrap();
-    assert_eq!(native.accounts()[0].provider, Provider::Antigravity);
-    native.file.accounts[0].provider = Provider::Codex;
-    native.save().unwrap();
+    // Native sessions already share their vault; this source needs no token copy.
+    stores
+        .previous
+        .upsert(account("ada", Provider::Codex))
+        .unwrap();
     let loaded = Registry::load(stores.current.path.parent().unwrap()).unwrap();
     assert_eq!(loaded.accounts()[0].id, "ada");
     assert!(!stores.previous.path.exists());
@@ -308,6 +335,8 @@ fn a_failed_readback_is_repaired_on_retry_instead_of_becoming_authoritative() {
     assert!(matches!(stores.run(), Err(Error::VerifyFailed)));
     assert!(stores.previous.path.exists());
     assert!(!stores.current.path.exists());
+    let journal = std::fs::read_to_string(stores.current.path.with_file_name(JOURNAL)).unwrap();
+    assert!(!journal.contains("old-ada"));
     *stores.credentials.corrupt_write.borrow_mut() = false;
     stores.run().unwrap();
     assert_eq!(
@@ -317,6 +346,47 @@ fn a_failed_readback_is_repaired_on_retry_instead_of_becoming_authoritative() {
             .unwrap()
             .as_deref(),
         Some("old-ada")
+    );
+    assert!(!stores.previous.path.exists());
+}
+
+#[test]
+fn credential_read_failure_never_publishes_or_cleans_up_accounts() {
+    let mut stores = Stores::new();
+    stores.old_google("ada");
+    *stores.credentials.fail_read.borrow_mut() = true;
+    assert!(stores.run().is_err());
+    assert!(stores.previous.path.exists());
+    assert!(!stores.current.path.exists());
+    assert!(!stores.current.path.with_file_name(JOURNAL).exists());
+    *stores.credentials.fail_read.borrow_mut() = false;
+    stores.run().unwrap();
+    assert_eq!(stores.current.accounts().len(), 1);
+}
+
+#[test]
+fn source_grant_rotation_is_detected_before_cleanup_and_retried_with_latest_grant() {
+    let mut stores = Stores::new();
+    stores.old_google("ada");
+    *stores.credentials.rotate_source_after_set.borrow_mut() = true;
+    assert!(stores.run().is_err());
+    assert!(stores.previous.path.exists());
+    assert_eq!(
+        stores
+            .credentials
+            .get(PREVIOUS_SERVICE, "ada")
+            .unwrap()
+            .as_deref(),
+        Some("rotated-ada")
+    );
+    stores.run().unwrap();
+    assert_eq!(
+        stores
+            .credentials
+            .get(vault::SERVICE, "ada")
+            .unwrap()
+            .as_deref(),
+        Some("rotated-ada")
     );
     assert!(!stores.previous.path.exists());
 }

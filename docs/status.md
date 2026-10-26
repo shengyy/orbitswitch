@@ -14,6 +14,12 @@ Update this page in the same PR whenever verification scope changes.
 
 ## Installed-client verification (macOS)
 
+- **OrbitSwitch storage upgrade** (0.2.1 → 0.2.2, macOS 27):
+  - Combined earlier and current data into 14 saved accounts across all three providers, copied
+    missing Antigravity grants, retained the current grant, and consumed the old registry and vault
+    entries after verification.
+  - A second launch retained the identical registry and did not repeat the transfer. Official-client
+    credential files and the running desktop-client processes remained unchanged.
 - **Antigravity** (2.19.1, 2.22.0, 2.23.1, 2.26.0 on macOS 27):
   - OAuth client discovery, browser sign-in, adopting the active IDE sign-in, and repeated confirmed
     switches with Antigravity reopening on the target account.
@@ -35,7 +41,8 @@ Update this page in the same PR whenever verification scope changes.
 - **Account storage upgrades**: merging earlier and current registries, retaining current grants and
   desktop bindings, honoring explicit native-account removals, original Google-only metadata,
   malformed/unsupported source rejection, missing grants, failed token writes/readback, failed
-  registry publication, interrupted cleanup, and repeated startup without account resurrection.
+  registry publication, credential-read failure, source grant rotation, interrupted cleanup, and
+  repeated startup without account resurrection.
 - **Native credential transactions**: CLI-file and SQLite cookie rollback, preserving unrelated
   settings and cookies, aborting on cookie-schema drift before deletion, distinct rollback-failure
   reporting, missing quota vs. zero, scoped limit deduplication, Codex weekly-only and dual-window
