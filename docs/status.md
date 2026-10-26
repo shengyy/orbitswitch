@@ -42,7 +42,8 @@ Update this page in the same PR whenever verification scope changes.
   desktop bindings, honoring explicit native-account removals, original Google-only metadata,
   malformed/unsupported source rejection, missing grants, failed token writes/readback, failed
   registry publication, credential-read failure, source grant rotation, interrupted cleanup, and
-  repeated startup without account resurrection.
+  repeated startup without account resurrection. Linked source/destination directories are rejected
+  before any transfer or cleanup.
 - **Native credential transactions**: CLI-file and SQLite cookie rollback, preserving unrelated
   settings and cookies, aborting on cookie-schema drift before deletion, distinct rollback-failure
   reporting, missing quota vs. zero, scoped limit deduplication, Codex weekly-only and dual-window

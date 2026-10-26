@@ -17,6 +17,8 @@ All notable changes to OrbitSwitch are documented here. The format follows
 - Make the transfer resumable: persist copy fingerprints before credential writes, verify the
   destination before removing the source, and retain recoverable state on failure. Only the current
   OrbitSwitch store is used after completion; native client sign-ins and processes are untouched.
+- Reject linked source/destination directories before transfer so a directory-link workaround cannot
+  cause source cleanup to remove the destination. Remove such a link before upgrading.
 
 ## [0.2.1] - 2026-10-25
 

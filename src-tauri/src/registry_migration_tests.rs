@@ -511,3 +511,33 @@ fn conflicting_provider_identity_aborts_before_writing_any_credentials() {
     );
     assert!(stores.previous.path.exists());
 }
+
+#[cfg(unix)]
+#[test]
+fn aliased_data_directories_are_rejected_before_any_source_is_consumed() {
+    let mut stores = Stores::new();
+    stores.old_google("ada");
+    std::os::unix::fs::symlink(
+        stores.previous.path.parent().unwrap(),
+        stores.current.path.parent().unwrap(),
+    )
+    .unwrap();
+    let source = std::fs::read(&stores.previous.path).unwrap();
+    assert!(Registry::load(stores.current.path.parent().unwrap()).is_err());
+    assert_eq!(std::fs::read(&stores.previous.path).unwrap(), source);
+    assert!(!stores.current.path.with_file_name(JOURNAL).exists());
+    assert!(
+        stores
+            .credentials
+            .get(PREVIOUS_SERVICE, "ada")
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        stores
+            .credentials
+            .get(vault::SERVICE, "ada")
+            .unwrap()
+            .is_none()
+    );
+}

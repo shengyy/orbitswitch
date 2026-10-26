@@ -127,9 +127,15 @@ fn migrate(
         }
         Err(error) => return Err(error.into()),
     };
-    if previous_path == current.path {
+    let current_dir = current.path.parent().unwrap();
+    let same_directory = match std::fs::canonicalize(current_dir) {
+        Ok(directory) => directory == std::fs::canonicalize(previous_dir)?,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+        Err(error) => return Err(error.into()),
+    };
+    if previous_path == current.path || same_directory {
         return Err(Error::Invalid(
-            "account migration source equals destination".into(),
+            "account stores share a directory; remove the directory link before upgrading".into(),
         ));
     }
     let previous = Registry::read(previous_dir)?;
