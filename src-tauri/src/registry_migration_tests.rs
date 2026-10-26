@@ -523,7 +523,8 @@ fn aliased_data_directories_are_rejected_before_any_source_is_consumed() {
     )
     .unwrap();
     let source = std::fs::read(&stores.previous.path).unwrap();
-    assert!(Registry::load(stores.current.path.parent().unwrap()).is_err());
+    stores.current = Registry::read(stores.current.path.parent().unwrap()).unwrap();
+    assert!(stores.run().is_err());
     assert_eq!(std::fs::read(&stores.previous.path).unwrap(), source);
     assert!(!stores.current.path.with_file_name(JOURNAL).exists());
     assert!(
