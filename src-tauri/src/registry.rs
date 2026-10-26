@@ -13,6 +13,9 @@ use crate::google::cloudcode::Plan;
 use crate::provider::Provider;
 use std::collections::{BTreeMap, BTreeSet};
 
+#[path = "registry_migration.rs"]
+mod migration;
+
 const FILE: &str = "accounts.json";
 const VERSION: u32 = 1;
 
@@ -65,8 +68,14 @@ pub fn fingerprint(refresh_token: &str) -> String {
 
 impl Registry {
     pub fn load(dir: &Path) -> Result<Registry> {
+        let mut registry = Self::read(dir)?;
+        migration::upgrade(&mut registry)?;
+        Ok(registry)
+    }
+
+    fn read(dir: &Path) -> Result<Registry> {
         let path = dir.join(FILE);
-        let file = match fs::read(&path) {
+        let file: File = match fs::read(&path) {
             Ok(bytes) => serde_json::from_slice(&bytes)?,
             Err(err) if err.kind() == std::io::ErrorKind::NotFound => File {
                 version: VERSION,
@@ -74,6 +83,11 @@ impl Registry {
             },
             Err(err) => return Err(err.into()),
         };
+        if file.version != VERSION {
+            return Err(crate::error::Error::Invalid(
+                "unsupported account registry version".into(),
+            ));
+        }
         Ok(Registry { path, file })
     }
 
@@ -172,13 +186,36 @@ impl Registry {
     }
 
     fn save(&self) -> Result<()> {
-        let dir = self.path.parent().expect("registry path has a parent");
-        fs::create_dir_all(dir)?;
-        let tmp = self.path.with_extension("json.tmp");
-        fs::write(&tmp, serde_json::to_vec_pretty(&self.file)?)?;
-        fs::rename(&tmp, &self.path)?;
-        Ok(())
+        write_file(&self.path, &serde_json::to_vec_pretty(&self.file)?)
     }
+}
+
+fn write_file(path: &Path, bytes: &[u8]) -> Result<()> {
+    use std::io::Write;
+
+    let dir = path.parent().expect("registry path has a parent");
+    fs::create_dir_all(dir)?;
+    let tmp = path.with_extension("json.tmp");
+    let result = (|| {
+        let mut options = fs::OpenOptions::new();
+        options.write(true).create(true).truncate(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut file = options.open(&tmp)?;
+        file.write_all(bytes)?;
+        file.sync_all()?;
+        fs::rename(&tmp, path)?;
+        #[cfg(unix)]
+        fs::File::open(dir)?.sync_all()?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(tmp);
+    }
+    result
 }
 
 #[cfg(test)]

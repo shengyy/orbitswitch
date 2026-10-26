@@ -42,6 +42,7 @@ severity and recommendations from the snapshot.
 | `updater.rs` / `updater_tests.rs` | Signed app update checks, installation and loopback tests |
 | `autostart.rs` | Open at Login (SMAppService on macOS, Run key on Windows) |
 | `registry.rs` | Account metadata and fingerprints in `accounts.json` |
+| `registry_migration.rs` / `registry_migration_tests.rs` | One-time storage transfer before startup, copy journal, destination verification and resumable source cleanup |
 | `vault.rs` | Antigravity refresh tokens in the OS credential store |
 | `tokens.rs` | In-memory access-token cache |
 | `secret_store/` | macOS Keychain (`/usr/bin/security`) and Windows Credential Manager primitives |
@@ -107,6 +108,13 @@ before replacing the bundle, then restarts OrbitSwitch (`app.restart()` on macOS
 
 ## Persistence
 
+- Before loading normal account state, `registry_migration.rs` consumes the previous storage
+  namespace into the current one. Current metadata, grants and explicit native-account removals take
+  precedence. A journal records hashes for staged credential copies before writes, allowing retries
+  to repair an incomplete copy without treating it as an existing current grant. The merged registry
+  is atomically written, synced and read back before source cleanup. Cleanup interruptions resume on
+  the next launch. Codex / Claude session storage is already shared and is left intact. No old-store
+  fallback remains after the transfer; official client credentials and processes are unaffected.
 - `registry.rs` atomically writes `accounts.json` via a temporary file rename. Refresh-token and
   native-credential fingerprints prevent re-adopting a removed account until the native client signs
   into a different session or the user explicitly imports it.

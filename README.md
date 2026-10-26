@@ -42,6 +42,10 @@ Windows builds are unsigned; SmartScreen may require **More info → Run anyway*
 
 The app menu offers Open at Login, logs, update checks and Quit. Updates restart OrbitSwitch only.
 
+Upgrading from AgyOrbit or OrbitSwitch 0.2.1: close any older app instance and install 0.2.2 or later.
+Saved accounts and authorizations transfer automatically, including accounts added in 0.2.1. Keep
+the earlier account data and credential-store entries until the first successful launch.
+
 ## Local by design
 
 Credentials and paired desktop sessions stay in the Rust backend and the OS credential store. The

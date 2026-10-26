@@ -4,7 +4,7 @@
 use crate::error::Result;
 use crate::secret_store;
 
-const SERVICE: &str = "orbitswitch";
+pub(crate) const SERVICE: &str = "orbitswitch";
 
 pub fn get(account_id: &str) -> Result<Option<String>> {
     secret_store::get(SERVICE, account_id)

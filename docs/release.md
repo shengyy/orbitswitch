@@ -15,6 +15,9 @@ Releases are run end to end with `gh`:
 1. **Prepare in a PR.** Update [status.md](status.md), move `CHANGELOG.md` `[Unreleased]` entries under
    `## [X.Y.Z] - YYYY-MM-DD`, set `version` in `src-tauri/Cargo.toml`, run `cargo check` in
    `src-tauri` to update `Cargo.lock`, and merge through the draft → ready → `gate` flow.
+   App identifiers, credential-store services and registry schema are persistent data contracts;
+   changing them requires a verified transfer into the new store before normal startup. Preserve
+   both earlier accounts and accounts enrolled in the current version.
 2. **Build the draft.**
 
    ```bash

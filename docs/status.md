@@ -32,6 +32,10 @@ Update this page in the same PR whenever verification scope changes.
 
 ## Synthetic and loopback verification
 
+- **Account storage upgrades**: merging earlier and current registries, retaining current grants and
+  desktop bindings, honoring explicit native-account removals, original Google-only metadata,
+  malformed/unsupported source rejection, missing grants, failed token writes/readback, failed
+  registry publication, interrupted cleanup, and repeated startup without account resurrection.
 - **Native credential transactions**: CLI-file and SQLite cookie rollback, preserving unrelated
   settings and cookies, aborting on cookie-schema drift before deletion, distinct rollback-failure
   reporting, missing quota vs. zero, scoped limit deduplication, Codex weekly-only and dual-window

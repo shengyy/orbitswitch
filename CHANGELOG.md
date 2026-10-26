@@ -6,6 +6,18 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-10-26
+
+### Fixed
+
+- Recover saved accounts after the 0.2.1 storage-identifier change. On first launch, merge the
+  previous account registry into OrbitSwitch's current store and transfer saved Antigravity
+  authorizations without replacing grants already saved by 0.2.1. Codex / Claude sessions and
+  Claude Desktop bindings are retained. No account re-enrollment is needed for intact saved grants.
+- Make the transfer resumable: persist copy fingerprints before credential writes, verify the
+  destination before removing the source, and retain recoverable state on failure. Only the current
+  OrbitSwitch store is used after completion; native client sign-ins and processes are untouched.
+
 ## [0.2.1] - 2026-10-25
 
 ### Changed
@@ -13,10 +25,12 @@ All notable changes to OrbitSwitch are documented here. The format follows
 - Use `io.github.shengyy.orbitswitch` as the bundle identifier, `orbitswitch` as the Google
   credential-store service, and `OrbitSwitch` as the Windows login-item name.
 
-### Manual cleanup
+### Upgrade
 
-- After updating, import or sign into your accounts in OrbitSwitch, then remove any unused app-data
-  directory, log directory, keychain item or Windows Run entry from earlier builds.
+- This version changed the account storage namespace without transferring existing data. Upgrade to
+  0.2.2 or later to recover the saved accounts. Keep the earlier account data and credential-store
+  entries until that upgrade finishes. Unrelated old logs, caches and Windows Run entries can be
+  removed manually after closing any older app instance.
 
 ## [0.2.0] - 2026-10-25
 
