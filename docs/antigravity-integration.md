@@ -61,13 +61,18 @@ fallback. OrbitSwitch reads the keyring first and writes both locations on switc
 
 Base URL: `https://daily-cloudcode-pa.googleapis.com/v1internal` (`POST` with bearer token).
 
-- **`User-Agent`**: `OrbitSwitch/<version> (antigravity/<installed-version>)`, where `<installed-version>`
-  is read from the root `package.json` inside `Resources/app.asar` on each refresh. An unversioned or
-  stale product token causes `:retrieveUserQuotaSummary` to omit the Gemini group; missing the
-  `antigravity` token entirely returns HTTP 403.
+- **`User-Agent`**: `OrbitSwitch/<version> (antigravity/hub/<installed-version>)`, where
+  `<installed-version>` is read from the root `package.json` inside `Resources/app.asar` on each
+  refresh (the `hub/` form is verified on 2.24.0, macOS 27). An unversioned or stale product token
+  causes `:retrieveUserQuotaSummary` to omit the Gemini group; missing the `antigravity` token
+  entirely returns HTTP 403.
 - **`:retrieveUserQuotaSummary`** (`{}`): returns `groups[]` with `displayName`, `description`
   (`Models within this group: …`) and `buckets[]` (`window`: `5h` or `weekly`, `remainingFraction`,
   `resetTime`). Proto3 JSON omits `0`, so a bucket without `remainingFraction` is exhausted (`0.0`).
+  Eligible Pro accounts report a separate `Gemini 4 Argon` group with one `gemini-argon-wtu-weekly`
+  bucket (verified on 2.24.0, macOS 27). Preserve that group rather than combining it with Gemini or
+  expanding the per-model low/medium/high entries from `:retrieveUserQuota`. Ultra accounts may
+  include Argon in the larger Gemini pool instead; do not synthesize a separate allowance.
 - **`:loadCodeAssist`** (`{"metadata":{"ideType":"ANTIGRAVITY"}}`): returns `paidTier` and
   `currentTier`. `paidTier` takes precedence (`ultra` → Ultra, `pro` → Pro, `free-tier` or absent →
   Free). Plan and quota responses are handled independently so an expired subscription updates to

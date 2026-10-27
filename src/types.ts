@@ -1,7 +1,7 @@
 // Mirrors src-tauri/src/model.rs. The backend is the source of truth.
 
 export type Provider = "antigravity" | "codex" | "claude";
-export type GroupKey = "gemini" | "claude" | "codex" | "review" | "sonnet" | "opus" | "other";
+export type GroupKey = "gemini" | "argon" | "claude" | "codex" | "review" | "sonnet" | "opus" | "other";
 export type PlanKind =
   | "free"
   | "pro"

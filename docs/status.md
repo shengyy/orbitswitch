@@ -25,6 +25,9 @@ Update this page in the same PR whenever verification scope changes.
     switches with Antigravity reopening on the target account.
   - Installed-version `User-Agent` discovery from `Resources/app.asar`, returning both Gemini and
     Claude/GPT quota groups across Pro and Ultra accounts.
+  - Installed-version hub `User-Agent` on 2.24.0 with a Pro account, returning the Gemini and
+    Claude/GPT groups plus a separate weekly-only Gemini 4 Argon group (read-only probe). Argon on
+    Ultra accounts remains **not verified**.
   - Independent plan and quota handling: an expired Pro account updates to `Free` even when quota
     returns HTTP 403.
   - Native menus, clipboard copy and Open at Login through SMAppService.
@@ -38,6 +41,9 @@ Update this page in the same PR whenever verification scope changes.
 
 ## Synthetic and loopback verification
 
+- **Argon quota**: synthetic summary coverage keeps the shared weekly bucket separate from Gemini,
+  preserves reset times and proto3 omitted-zero handling, and gates loopback responses on the current
+  installed hub identity.
 - **Account storage upgrades**: merging earlier and current registries, retaining current grants and
   desktop bindings, honoring explicit native-account removals, original Google-only metadata,
   malformed/unsupported source rejection, missing grants, failed token writes/readback, failed
