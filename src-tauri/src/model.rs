@@ -81,8 +81,10 @@ pub struct ProviderStatus {
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Operation {
     Idle,
+    #[serde(rename_all = "camelCase")]
     Adding {
         provider: Provider,
+        can_copy_link: bool,
     },
     Importing {
         provider: Provider,

@@ -111,6 +111,11 @@ const en = {
   "adding.title": "Continue in your browser",
   "adding.body":
     "Complete the official {client} sign-in in your browser. Your current client account stays in place.",
+  "adding.privateHint":
+    "Need a private window or another browser? Copy the sign-in link here and open it on this computer within 5 minutes.",
+  "adding.copyLink": "Copy sign-in link",
+  "adding.copied": "Link copied",
+  "adding.copyFailed": "Couldn't copy the link. Try again while sign-in is waiting.",
   "adding.cancel": "Cancel",
   "empty.title": "Add your first account",
   "empty.body":
@@ -125,6 +130,7 @@ const en = {
   "error.client_discovery":
     "Could not read the sign-in setup from Antigravity. OrbitSwitch may need an update.",
   "error.oauth_timeout": "The browser sign-in timed out.",
+  "error.sign_in_link_unavailable": "The sign-in link is no longer available. Add the account again.",
   "error.oauth_denied": "The official client did not complete sign-in.",
   "error.token_revoked": "This account's sign-in expired. Sign in again.",
   "error.network": "Network error. Check your connection or proxy.",
@@ -246,6 +252,10 @@ const zh: Record<Key, string> = {
   "progress.ok": "好",
   "adding.title": "在浏览器中继续",
   "adding.body": "在浏览器中完成 {client} 官方登录，当前客户端使用的账号会保持不变。",
+  "adding.privateHint": "需要无痕窗口或其他浏览器？请在这里复制登录链接，在本机打开并于 5 分钟内完成登录。",
+  "adding.copyLink": "复制登录链接",
+  "adding.copied": "链接已复制",
+  "adding.copyFailed": "复制失败，请在等待登录期间重试。",
   "adding.cancel": "取消",
   "empty.title": "添加第一个账号",
   "empty.body": "为 {client} 添加订阅账号，或导入这台电脑上已登录的账号。",
@@ -258,6 +268,7 @@ const zh: Record<Key, string> = {
   "error.antigravity_not_found": "没有找到 Antigravity，请先安装。",
   "error.client_discovery": "无法从 Antigravity 读取登录配置，可能需要更新 OrbitSwitch。",
   "error.oauth_timeout": "等待浏览器授权超时。",
+  "error.sign_in_link_unavailable": "登录链接已失效，请重新添加账号。",
   "error.oauth_denied": "官方客户端未完成登录。",
   "error.token_revoked": "这个账号的授权已失效，请重新授权。",
   "error.network": "网络连接失败，请检查网络或代理。",

@@ -243,6 +243,7 @@ export function App() {
           operation={snapshot.operation}
           accounts={snapshot.accounts}
           onCancelAdd={() => ipc.cancelAddAccount()}
+          onCopySignInLink={ipc.copySignInLink}
         />
       ) : dialog?.kind === "result" ? (
         <ResultSheet tone={dialog.tone} message={dialog.message} onClose={closeDialog} />

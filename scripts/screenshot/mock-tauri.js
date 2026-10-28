@@ -1,6 +1,6 @@
 // Stands in for Tauri's IPC so the real UI renders demo accounts in a browser.
 // Only fictional names and example.com addresses: these screenshots are public.
-// Query: ?scene=list|confirm|switching
+// Query: ?scene=list|confirm|switching|adding
 
 const params = new URLSearchParams(location.search);
 const scene = params.get("scene") ?? "list";
@@ -53,7 +53,9 @@ const snapshot = {
           targetId: provider === "antigravity" ? "grace" : `${provider}-grace`,
           step: "writing",
         }
-      : { kind: "idle" },
+      : scene === "adding"
+        ? { kind: "adding", provider, canCopyLink: params.get("link") !== "preparing" }
+        : { kind: "idle" },
   refreshing: false,
   refreshedAt: at(-MIN),
   update: { checking: false, available: null },
@@ -152,6 +154,8 @@ window.__TAURI_INTERNALS__ = {
     window.__orbitDemo.calls.push({ command, args });
     if (command === "get_snapshot") return snapshot;
     if (command === "running_processes") return processes;
+    if (command === "copy_sign_in_link" && params.get("copy") === "failed")
+      throw { code: "sign_in_link_unavailable", message: "test sign-in link unavailable" };
     return null;
   },
 };

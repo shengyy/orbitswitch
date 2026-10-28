@@ -1,7 +1,7 @@
 // Renders the README and site screenshots from the real UI with demo data.
 //   bun scripts/screenshot/render.ts
 // Needs Google Chrome and ImageMagick (`magick`). Renders at 3x and writes
-// assets/screenshots/{hero,flow,codex,claude}-{light,dark}@3x.png plus 2x
+// assets/screenshots/{hero,flow,codex,claude,adding}-{light,dark}@3x.png plus 2x
 // copies without the suffix.
 
 import { mkdtemp, rm } from "node:fs/promises";
@@ -126,7 +126,7 @@ async function shoot(scene: string, scheme: "light" | "dark", ready: string, fil
   await Bun.write(file, Buffer.from(String(shot.data), "base64"));
 }
 
-// 3. Hero (the list) and flow (confirm + progress) in both appearances, at 3x and 2x.
+// 3. Account lists and sheets in both appearances, at 3x and 2x.
 const work = await mkdtemp(join(tmpdir(), "orbitswitch-shots-"));
 const publish = async (source: string, name: string) => {
   await $`cp ${source} ${join(out, `${name}@3x.png`)}`.quiet();
@@ -144,6 +144,8 @@ try {
     await shoot("switching", scheme, ".steps .now", join(work, "switching.png"));
     await $`magick ${join(work, "confirm.png")} ${join(work, "switching.png")} -background none +append ${join(work, "flow.png")}`.quiet();
     await publish(join(work, "flow.png"), `flow-${scheme}`);
+    await shoot("adding", scheme, ".sheet .btn-primary:not(:disabled)", join(work, "adding.png"));
+    await publish(join(work, "adding.png"), `adding-${scheme}`);
   }
 } finally {
   socket.close();
@@ -151,4 +153,4 @@ try {
   server.stop(true);
   await Promise.all([site, profile, work].map((dir) => rm(dir, { recursive: true, force: true })));
 }
-console.log("wrote {hero,flow,codex,claude}-{light,dark}{,@3x}.png to assets/screenshots");
+console.log("wrote {hero,flow,codex,claude,adding}-{light,dark}{,@3x}.png to assets/screenshots");

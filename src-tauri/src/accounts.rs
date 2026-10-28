@@ -4,6 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use chrono::Utc;
+use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_opener::OpenerExt;
 use tokio::sync::oneshot;
 
@@ -24,6 +25,7 @@ const SIGN_IN_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
     let guard = orbit.begin(Operation::Adding {
         provider: Provider::Antigravity,
+        can_copy_link: false,
     })?;
     let sync = orbit.sync_lock.lock().await;
     let client = orbit.oauth_client().await?;
@@ -32,19 +34,24 @@ pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
     let pkce = Pkce::new()?;
     let state = oauth::random_token(24)?;
     let url = oauth::authorization_url(&client.id, &redirect_uri, &state, &pkce.challenge);
-    orbit
+    let (cancel_tx, cancel_rx) = oneshot::channel();
+    orbit.set_pending_auth(cancel_tx, Some(url.clone()));
+    if orbit
         .app
         .opener()
         .open_url(url, None::<&str>)
-        .map_err(|err| Error::Invalid(err.to_string()))?;
-
-    let (cancel_tx, cancel_rx) = oneshot::channel();
-    orbit.set_pending_auth(cancel_tx);
+        .is_err()
+    {
+        log::warn!("could not open the browser; use Copy sign-in link to continue");
+        shell::show(&orbit.app);
+    }
     let code = tokio::select! {
         code = loopback.wait_for_code(&state) => code,
         _ = cancel_rx => Err(Error::OAuthCancelled),
         _ = tokio::time::sleep(SIGN_IN_TIMEOUT) => Err(Error::OAuthTimeout),
     }?;
+    // Retire the link before token exchange so it cannot be copied after use.
+    orbit.cancel_pending_auth();
 
     let grant =
         oauth::exchange_code(&orbit.http, &client, &code, &pkce.verifier, &redirect_uri).await?;
@@ -69,6 +76,14 @@ pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
 
 pub fn cancel_add(orbit: &Orbit) {
     orbit.cancel_pending_auth();
+}
+
+pub fn copy_sign_in_link(orbit: &Orbit) -> Result<()> {
+    orbit
+        .app
+        .clipboard()
+        .write_text(orbit.sign_in_url()?)
+        .map_err(|_| Error::Invalid("could not copy the sign-in link".into()))
 }
 
 /// Forgets the account. Antigravity stays signed in if it was the active one.

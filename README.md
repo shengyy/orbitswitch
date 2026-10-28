@@ -36,6 +36,8 @@ Windows builds are unsigned; SmartScreen may require **More info → Run anyway*
 1. Open OrbitSwitch from the menu bar or tray and choose a platform tab.
 2. **Add account** opens the official sign-in without changing your current client account.
    **Import** saves the account already signed in on this computer.
+   For Gemini in a private window or another browser, choose **Copy sign-in link** in OrbitSwitch's
+   waiting sheet and open it on the same computer. Complete sign-in within five minutes.
 3. For Claude Desktop, sign into the same account and workspace in both Desktop and Claude Code,
    then import.
 4. Pick another account, review the affected processes, and confirm the switch.

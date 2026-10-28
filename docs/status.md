@@ -28,6 +28,7 @@ Update this page in the same PR whenever verification scope changes.
   - Independent plan and quota handling: an expired Pro account updates to `Free` even when quota
     returns HTTP 403.
   - Native menus, clipboard copy and Open at Login through SMAppService.
+  - Private-window enrollment using the copied original sign-in link remains **not verified**.
 - **Codex** (CLI 0.164.0, desktop 26.1021.31345) and **Claude** (Claude Code 2.1.310, Desktop 3.6556.2):
   - Read-only probes passed for credential discovery, user/workspace identity, plan and quota parsing
     against live endpoints.
@@ -51,6 +52,9 @@ Update this page in the same PR whenever verification scope changes.
 - **UI and website**: macOS Liquid Glass corner clipping and resize alignment; English and Simplified
   Chinese layouts in light and dark appearances across all three tabs, confirmation/binding/update
   sheets, and the interactive website demo.
+- **Gemini browser enrollment**: the original authorization URL preserves callback and state;
+  loopback callbacks require matching state and no browser cookies. The waiting sheet's copy action
+  has preparation, success and retry states. Real private-window Google sign-in remains **not verified**.
 - **App updater**: loopback signature verification, tampered payload and version-mismatch rejection,
   isolated macOS bundle replacement preserving `accounts.json`, and local signed archive verification.
   End-to-end updating of a running installed app and native Windows updates remain **not verified**.

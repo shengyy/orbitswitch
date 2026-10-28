@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { displayName } from "../format";
 import { t } from "../i18n";
 import { providerInfo } from "../providers";
@@ -12,10 +13,12 @@ interface Props {
   operation: Exclude<Operation, { kind: "idle" }>;
   accounts: Account[];
   onCancelAdd: () => void;
+  onCopySignInLink: () => Promise<void>;
 }
 
 /** Progress for whatever the backend is doing right now. */
-export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
+export function ActivitySheet({ operation, accounts, onCancelAdd, onCopySignInLink }: Props) {
+  const [copyState, setCopyState] = useState<"idle" | "copying" | "copied" | "failed">("idle");
   const vars = "provider" in operation ? providerInfo[operation.provider] : {};
   if (operation.kind === "adding") {
     return (
@@ -25,10 +28,33 @@ export function ActivitySheet({ operation, accounts, onCancelAdd }: Props) {
         </div>
         <h2 className="center">{t("adding.title")}</h2>
         <p className="center">{t("adding.body", vars)}</p>
+        {operation.provider === "antigravity" && (
+          <p className="sheet-note center" role="status">
+            {t(copyState === "failed" ? "adding.copyFailed" : "adding.privateHint")}
+          </p>
+        )}
         <SheetActions>
           <button type="button" className="btn wide" onClick={onCancelAdd}>
             {t("adding.cancel")}
           </button>
+          {operation.provider === "antigravity" && (
+            <button
+              type="button"
+              className="btn btn-primary wide"
+              disabled={!operation.canCopyLink || copyState === "copying"}
+              onClick={async () => {
+                setCopyState("copying");
+                try {
+                  await onCopySignInLink();
+                  setCopyState("copied");
+                } catch {
+                  setCopyState("failed");
+                }
+              }}
+            >
+              {t(copyState === "copied" ? "adding.copied" : "adding.copyLink")}
+            </button>
+          )}
         </SheetActions>
       </Sheet>
     );

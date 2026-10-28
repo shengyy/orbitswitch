@@ -49,6 +49,11 @@ pub fn cancel_add_account(orbit: Shared<'_>) {
 }
 
 #[tauri::command]
+pub fn copy_sign_in_link(orbit: Shared<'_>) -> Result<()> {
+    accounts::copy_sign_in_link(&orbit)
+}
+
+#[tauri::command]
 pub async fn remove_account(orbit: Shared<'_>, id: String) -> Result<()> {
     let provider = orbit
         .state()
