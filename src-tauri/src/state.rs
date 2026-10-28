@@ -29,7 +29,12 @@ pub struct Orbit {
     inner: Mutex<Inner>,
     client: OnceCell<OAuthClient>,
     op_lock: Arc<tokio::sync::Mutex<()>>,
-    pending_auth: Mutex<Option<oneshot::Sender<()>>>,
+    pending_auth: Mutex<Option<PendingAuth>>,
+}
+
+struct PendingAuth {
+    cancel: oneshot::Sender<()>,
+    sign_in_url: Option<String>,
 }
 
 pub struct Inner {
@@ -55,6 +60,7 @@ pub struct OpGuard {
 
 impl Drop for OpGuard {
     fn drop(&mut self) {
+        self.orbit.cancel_pending_auth();
         self.orbit.update(|state| state.operation = Operation::Idle);
     }
 }
@@ -264,18 +270,42 @@ impl Orbit {
         self.state().operation == Operation::Idle
     }
 
-    pub fn set_pending_auth(&self, cancel: oneshot::Sender<()>) {
-        *self.pending_auth.lock().expect("pending auth poisoned") = Some(cancel);
+    pub fn set_pending_auth(&self, cancel: oneshot::Sender<()>, sign_in_url: Option<String>) {
+        let available = sign_in_url.is_some();
+        *self.pending_auth.lock().expect("pending auth poisoned") = Some(PendingAuth {
+            cancel,
+            sign_in_url,
+        });
+        self.update(|state| {
+            if let Operation::Adding { can_copy_link, .. } = &mut state.operation {
+                *can_copy_link = available;
+            }
+        });
+    }
+
+    /// The original authorization URL stays in Rust and exists only while awaiting Google.
+    pub fn sign_in_url(&self) -> Result<String> {
+        self.pending_auth
+            .lock()
+            .expect("pending auth poisoned")
+            .as_ref()
+            .and_then(|auth| auth.sign_in_url.clone())
+            .ok_or(Error::SignInLinkUnavailable)
     }
 
     pub fn cancel_pending_auth(&self) {
-        if let Some(cancel) = self
+        let pending = self
             .pending_auth
             .lock()
             .expect("pending auth poisoned")
-            .take()
-        {
-            let _ = cancel.send(());
+            .take();
+        if let Some(auth) = pending {
+            let _ = auth.cancel.send(());
+            self.update(|state| {
+                if let Operation::Adding { can_copy_link, .. } = &mut state.operation {
+                    *can_copy_link = false;
+                }
+            });
         }
     }
 }

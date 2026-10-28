@@ -20,7 +20,9 @@ Visual presentation, interaction, icons and screenshots for the app and website.
   `Escape` cancels). Confirmations list the affected processes.
 - Long-running operations show backend step progress; success closes after 1.6 s and errors remain
   until dismissed.
-- Browser sign-in shows a cancellable waiting sheet until authentication completes.
+- Browser sign-in shows a cancellable waiting sheet until authentication completes. Gemini also
+  offers **Copy sign-in link** for a private window or another browser on the same computer, with
+  a disabled action during preparation and inline copy success/failure feedback.
 - Account actions (`Sign In Again…`, `Copy Email`, `Remove Account…`) open in a native context menu
   on right click or `⋯`. App actions live in the header's `⋯` menu.
 
@@ -59,7 +61,7 @@ Render README and website screenshots from the real UI with fictional accounts:
 bun scripts/screenshot/render.ts   # requires Google Chrome and ImageMagick
 ```
 
-Writes `assets/screenshots/{hero,flow,codex,claude}-{light,dark}@3x.png` and 2x copies without the
+Writes `assets/screenshots/{hero,flow,codex,claude,adding}-{light,dark}@3x.png` and 2x copies without the
 suffix using `scripts/screenshot/mock-tauri.js` and `frame.css`.
 
 ## Website

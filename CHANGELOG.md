@@ -6,6 +6,12 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Copy the original Gemini sign-in link from the waiting sheet to continue in a private window or
+  another browser on the same computer. The link remains available if the default browser cannot
+  open, and expires when authorization completes, is cancelled or times out.
+
 ## [0.2.2] - 2026-10-26
 
 ### Fixed

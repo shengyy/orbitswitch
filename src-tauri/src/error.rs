@@ -26,6 +26,8 @@ pub enum Error {
     OAuthCancelled,
     #[error("authorization timed out")]
     OAuthTimeout,
+    #[error("no browser sign-in link is awaiting authorization")]
+    SignInLinkUnavailable,
     #[error("authorization was denied: {0}")]
     OAuthDenied(String),
     #[error("The service rejected the stored authorization; sign in again")]
@@ -72,6 +74,7 @@ impl Error {
             Self::ClientDiscovery => "client_discovery",
             Self::OAuthCancelled => "oauth_cancelled",
             Self::OAuthTimeout => "oauth_timeout",
+            Self::SignInLinkUnavailable => "sign_in_link_unavailable",
             Self::OAuthDenied(_) => "oauth_denied",
             Self::TokenRevoked => "token_revoked",
             Self::Network(_) => "network",

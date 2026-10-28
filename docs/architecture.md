@@ -75,6 +75,11 @@ One user operation runs at a time (`Orbit::begin` returns `Busy` otherwise): `ad
 `sync_lock` serializes live-credential sync, quota/token refresh and switches so a background refresh
 cannot race an active switch. Client installation and process checks run outside the snapshot mutex.
 
+During Gemini browser sign-in, Rust retains the original OAuth URL with the pending cancellation
+sender. The waiting sheet receives only link availability; its copy command writes the original URL
+to the system clipboard in Rust. The URL is retired on callback, cancellation, timeout or operation
+failure. A default-browser launch failure keeps the copy action available.
+
 ### Antigravity switch sequence
 
 1. **Preparing**: redeem the target account's refresh token; stop immediately on `invalid_grant` and

@@ -11,6 +11,7 @@ export const ipc = {
   importAccount: (provider: Provider, expectedId?: string) =>
     invoke<string>("import_account", { provider, expectedId }),
   cancelAddAccount: () => invoke<void>("cancel_add_account"),
+  copySignInLink: () => invoke<void>("copy_sign_in_link"),
   removeAccount: (id: string) => invoke<void>("remove_account", { id }),
   switchAccount: (id: string) => invoke<void>("switch_account", { id }),
   runningProcesses: (provider: Provider) => invoke<RelatedProcess[]>("running_processes", { provider }),

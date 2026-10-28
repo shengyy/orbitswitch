@@ -210,7 +210,10 @@ impl Drop for LoginDir {
     }
 }
 pub async fn add(orbit: &Arc<Orbit>, provider: Provider) -> Result<String> {
-    let guard = orbit.begin(Operation::Adding { provider })?;
+    let guard = orbit.begin(Operation::Adding {
+        provider,
+        can_copy_link: false,
+    })?;
     let sync = orbit.sync_lock.lock().await;
     let cli = install::locate(provider).cli.ok_or(Error::ClientNotFound)?;
     let root = std::env::temp_dir().join(format!(
@@ -252,7 +255,7 @@ pub async fn add(orbit: &Arc<Orbit>, provider: Provider) -> Result<String> {
     }
     let mut child = cmd.spawn()?;
     let (tx, rx) = oneshot::channel();
-    orbit.set_pending_auth(tx);
+    orbit.set_pending_auth(tx, None);
     let status = tokio::select! {s=child.wait()=>s?,_=rx=>{let _=child.kill().await;return Err(Error::OAuthCancelled);},_=tokio::time::sleep(Duration::from_secs(300))=>{let _=child.kill().await;return Err(Error::OAuthTimeout);}};
     if !status.success() {
         return Err(Error::OAuthDenied(

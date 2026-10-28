@@ -62,6 +62,7 @@ pub fn run() {
             commands::refresh,
             commands::add_account,
             commands::cancel_add_account,
+            commands::copy_sign_in_link,
             commands::import_account,
             commands::remove_account,
             commands::switch_account,
