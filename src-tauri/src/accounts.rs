@@ -36,12 +36,7 @@ pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
     let url = oauth::authorization_url(&client.id, &redirect_uri, &state, &pkce.challenge);
     let (cancel_tx, cancel_rx) = oneshot::channel();
     orbit.set_pending_auth(cancel_tx, Some(url.clone()));
-    if orbit
-        .app
-        .opener()
-        .open_url(url, None::<&str>)
-        .is_err()
-    {
+    if orbit.app.opener().open_url(url, None::<&str>).is_err() {
         log::warn!("could not open the browser; use Copy sign-in link to continue");
         shell::show(&orbit.app);
     }

@@ -221,25 +221,22 @@ mod tests {
         );
         let authorization = url::Url::parse(&authorization).unwrap();
         let params: std::collections::HashMap<_, _> = authorization.query_pairs().collect();
-        let redirect = params["redirect_uri"].to_string();
+        let mut redirect = url::Url::parse(&params["redirect_uri"]).unwrap();
         let state = params["state"].to_string();
         let callback = tokio::spawn(async move { loopback.wait_for_code("test-state").await });
         let http = reqwest::Client::builder().no_proxy().build().unwrap();
 
-        let unrelated = http
-            .get(&redirect)
-            .query(&[("state", "other-state"), ("code", "unrelated-code")])
-            .send()
-            .await
-            .unwrap();
+        redirect
+            .query_pairs_mut()
+            .extend_pairs([("state", "other-state"), ("code", "unrelated-code")]);
+        let unrelated = http.get(redirect.clone()).send().await.unwrap();
         assert_eq!(unrelated.status(), 400);
 
-        let response = http
-            .get(redirect)
-            .query(&[("state", state.as_str()), ("code", "test-code")])
-            .send()
-            .await
-            .unwrap();
+        redirect
+            .query_pairs_mut()
+            .clear()
+            .extend_pairs([("state", state.as_str()), ("code", "test-code")]);
+        let response = http.get(redirect).send().await.unwrap();
         assert_eq!(response.status(), 200);
         assert_eq!(
             tokio::time::timeout(std::time::Duration::from_secs(5), callback)

@@ -28,7 +28,9 @@ Update this page in the same PR whenever verification scope changes.
   - Independent plan and quota handling: an expired Pro account updates to `Free` even when quota
     returns HTTP 403.
   - Native menus, clipboard copy and Open at Login through SMAppService.
-  - Private-window enrollment using the copied original sign-in link remains **not verified**.
+  - The original OAuth request reaches Google's sign-in form in a fresh Chrome 156.0.8078.48
+    incognito context on macOS 27.0.1. Completing private-window account enrollment remains
+    **not verified**.
 - **Codex** (CLI 0.164.0, desktop 26.1021.31345) and **Claude** (Claude Code 2.1.310, Desktop 3.6556.2):
   - Read-only probes passed for credential discovery, user/workspace identity, plan and quota parsing
     against live endpoints.
