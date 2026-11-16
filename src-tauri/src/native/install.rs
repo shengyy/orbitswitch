@@ -87,65 +87,72 @@ fn env_dir(key: &str, sub: &str) -> Option<PathBuf> {
         .then(|| if sub.is_empty() { base } else { base.join(sub) })
 }
 
+#[cfg(not(unix))]
+fn home_toolchain_dirs(home: &Path) -> Vec<PathBuf> {
+    vec![
+        home.join(".local/bin"),
+        home.join(".volta/bin"),
+        home.join(".bun/bin"),
+    ]
+}
+
+#[cfg(unix)]
 fn home_toolchain_dirs(home: &Path) -> Vec<PathBuf> {
     let mut dirs = vec![
         home.join(".local/bin"),
         home.join(".volta/bin"),
         home.join(".bun/bin"),
     ];
-    #[cfg(unix)]
-    {
-        dirs.push(home.join(".local/share/mise/shims"));
-        dirs.extend(versioned_bins(
-            &home.join(".local/share/mise/installs/node"),
-            "",
-            "bin",
-        ));
-        dirs.push(home.join(".asdf/shims"));
-        dirs.extend(versioned_bins(
-            &home.join(".asdf/installs/nodejs"),
-            "",
-            "bin",
-        ));
-        dirs.push(home.join(".nodenv/shims"));
-        let mut fnm_roots = Vec::new();
-        if let Some(root) = env_dir("FNM_DIR", "") {
-            fnm_roots.push(root);
-        }
-        #[cfg(target_os = "macos")]
-        {
-            fnm_roots.push(home.join("Library/Application Support/fnm"));
-        }
-        fnm_roots.push(home.join(".local/share/fnm"));
-        fnm_roots.push(home.join(".fnm"));
-        for root in fnm_roots {
-            dirs.push(root.join("aliases/default/bin"));
-            dirs.extend(versioned_bins(
-                &root.join("node-versions"),
-                "v",
-                "installation/bin",
-            ));
-        }
-        let mut nvm_roots = Vec::new();
-        if let Some(root) = env_dir("NVM_DIR", "") {
-            nvm_roots.push(root);
-        }
-        nvm_roots.push(home.join(".nvm"));
-        nvm_roots.push(home.join(".config/nvm"));
-        for root in nvm_roots {
-            dirs.extend(versioned_bins(&root.join("versions/node"), "v", "bin"));
-        }
-        #[cfg(target_os = "macos")]
-        {
-            dirs.push(home.join("Library/pnpm"));
-        }
-        dirs.extend([
-            home.join(".local/share/pnpm"),
-            home.join(".npm-global/bin"),
-            home.join("n/bin"),
-            home.join(".nix-profile/bin"),
-        ]);
+    dirs.push(home.join(".local/share/mise/shims"));
+    dirs.extend(versioned_bins(
+        &home.join(".local/share/mise/installs/node"),
+        "",
+        "bin",
+    ));
+    dirs.push(home.join(".asdf/shims"));
+    dirs.extend(versioned_bins(
+        &home.join(".asdf/installs/nodejs"),
+        "",
+        "bin",
+    ));
+    dirs.push(home.join(".nodenv/shims"));
+    let mut fnm_roots = Vec::new();
+    if let Some(root) = env_dir("FNM_DIR", "") {
+        fnm_roots.push(root);
     }
+    #[cfg(target_os = "macos")]
+    {
+        fnm_roots.push(home.join("Library/Application Support/fnm"));
+    }
+    fnm_roots.push(home.join(".local/share/fnm"));
+    fnm_roots.push(home.join(".fnm"));
+    for root in fnm_roots {
+        dirs.push(root.join("aliases/default/bin"));
+        dirs.extend(versioned_bins(
+            &root.join("node-versions"),
+            "v",
+            "installation/bin",
+        ));
+    }
+    let mut nvm_roots = Vec::new();
+    if let Some(root) = env_dir("NVM_DIR", "") {
+        nvm_roots.push(root);
+    }
+    nvm_roots.push(home.join(".nvm"));
+    nvm_roots.push(home.join(".config/nvm"));
+    for root in nvm_roots {
+        dirs.extend(versioned_bins(&root.join("versions/node"), "v", "bin"));
+    }
+    #[cfg(target_os = "macos")]
+    {
+        dirs.push(home.join("Library/pnpm"));
+    }
+    dirs.extend([
+        home.join(".local/share/pnpm"),
+        home.join(".npm-global/bin"),
+        home.join("n/bin"),
+        home.join(".nix-profile/bin"),
+    ]);
     dirs
 }
 
