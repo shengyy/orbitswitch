@@ -6,8 +6,15 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-11-16
+
 ### Fixed
 
+- Resolve Node.js and user toolchain directories consistently when discovering and launching official
+  Codex and Claude CLIs from GUI sessions with a minimal `PATH` (such as npm-installed launchers on
+  macOS using `#!/usr/bin/env node`), while preserving symlinked shim entry paths (#31).
+- Report missing CLI runtimes or broken CLI installations distinctly instead of showing a generic
+  sign-in denial, without exposing raw subprocess output in error messages or logs (#31).
 - Keep Codex's local project order and each project's expansion state when switching accounts,
   including projects matched to an existing destination ID. Every confirmed switch or **Restart**
   expands the local project section and shows the full project list, repairing accounts whose

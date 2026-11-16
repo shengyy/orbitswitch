@@ -1,5 +1,5 @@
 //! Opt-in read-only probes. Never refresh tokens, launch/stop clients or write credentials.
-use super::{api, codex_projects, desktop, live, storage};
+use super::{api, codex_projects, desktop, install, live, storage};
 use crate::provider::Provider;
 
 #[tokio::test]
@@ -96,5 +96,50 @@ fn current_codex_local_projects() {
         );
     } else {
         println!("Codex local-project state needs no recovery (read-only)");
+    }
+}
+
+#[test]
+#[ignore = "verifies installed CLI discovery and runtime PATH resolution under minimal GUI PATH (read-only --version)"]
+fn installed_cli_resolves_under_minimal_gui_path() {
+    for provider in [Provider::Codex, Provider::Claude] {
+        let cli = install::locate(provider)
+            .cli
+            .unwrap_or_else(|| panic!("{} CLI not found", provider.key()));
+        let output = std::process::Command::new(&cli.program)
+            .arg("--version")
+            .env("PATH", &cli.path_env)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{} --version failed under resolved PATH",
+            provider.key()
+        );
+        println!(
+            "{} ({}): {}",
+            provider.key(),
+            cli.program.display(),
+            String::from_utf8_lossy(&output.stdout).trim()
+        );
+    }
+    #[cfg(unix)]
+    if std::path::Path::new("/opt/homebrew/bin/node").is_file()
+        || std::path::Path::new("/usr/local/bin/node").is_file()
+    {
+        let cli = install::locate(Provider::Codex).cli.unwrap();
+        let node = std::process::Command::new("/usr/bin/env")
+            .args(["node", "--version"])
+            .env("PATH", &cli.path_env)
+            .output()
+            .unwrap();
+        assert!(
+            node.status.success(),
+            "node should resolve via cli.path_env"
+        );
+        println!(
+            "node via cli.path_env: {}",
+            String::from_utf8_lossy(&node.stdout).trim()
+        );
     }
 }

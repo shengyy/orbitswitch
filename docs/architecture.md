@@ -36,7 +36,7 @@ severity and recommendations from the snapshot.
 | `provider.rs` | Provider identities (`Antigravity`, `Codex`, `Claude`) |
 | `accounts.rs` | Antigravity browser sign-in, removal and live sign-in adoption |
 | `switcher.rs` | Antigravity account switch, stop and restart |
-| `native/` | Codex and Claude identity/quota APIs, live credential stores, Claude Desktop pairing, process control and rollback transactions |
+| `native/` | Codex and Claude CLI/runtime discovery, isolated login execution, identity/quota APIs, live credential stores, Claude Desktop pairing, process control and rollback transactions |
 | `quota.rs` | Concurrent quota and plan refresh |
 | `scheduler.rs` | 5-minute background upkeep and scheduled update checks |
 | `updater.rs` / `updater_tests.rs` | Signed app update checks, installation and loopback tests |

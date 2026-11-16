@@ -4,6 +4,7 @@ mod codex_projects;
 pub mod desktop;
 pub mod install;
 pub mod live;
+mod login;
 pub mod process;
 pub mod storage;
 mod transaction;
@@ -17,7 +18,7 @@ use crate::{
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 use tokio::sync::oneshot;
 #[derive(Clone, Serialize, Deserialize)]
 struct Session {
@@ -250,41 +251,9 @@ pub async fn add(orbit: &Arc<Orbit>, provider: Provider) -> Result<String> {
         std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700))?;
     }
     let dir = LoginDir(live::location(provider, root.clone(), true)?);
-    let mut cmd = tokio::process::Command::new(cli);
-    cmd.kill_on_drop(true)
-        .stdin(std::process::Stdio::null())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null());
-    for key in [
-        "OPENAI_API_KEY",
-        "CODEX_ACCESS_TOKEN",
-        "ANTHROPIC_API_KEY",
-        "ANTHROPIC_AUTH_TOKEN",
-        "CLAUDE_CODE_OAUTH_TOKEN",
-        "CLAUDE_CODE_OAUTH_REFRESH_TOKEN",
-        "CLAUDE_CODE_USE_BEDROCK",
-        "CLAUDE_CODE_USE_VERTEX",
-        "CLAUDE_CODE_USE_FOUNDRY",
-    ] {
-        cmd.env_remove(key);
-    }
-    if provider == Provider::Codex {
-        cmd.env("CODEX_HOME", &root)
-            .args(["login", "-c", "cli_auth_credentials_store=\"file\""]);
-    } else {
-        cmd.env("CLAUDE_CONFIG_DIR", &root)
-            .env("CLAUDE_SECURESTORAGE_CONFIG_DIR", &root)
-            .args(["auth", "login"]);
-    }
-    let mut child = cmd.spawn()?;
     let (tx, rx) = oneshot::channel();
     orbit.set_pending_auth(tx, None);
-    let status = tokio::select! {s=child.wait()=>s?,_=rx=>{let _=child.kill().await;return Err(Error::OAuthCancelled);},_=tokio::time::sleep(Duration::from_secs(300))=>{let _=child.kill().await;return Err(Error::OAuthTimeout);}};
-    if !status.success() {
-        return Err(Error::OAuthDenied(
-            "the official client did not complete sign-in".into(),
-        ));
-    }
+    login::run(provider, &cli, &root, rx).await?;
     let session = read(orbit, provider, &dir.0)
         .await?
         .ok_or(Error::SubscriptionLoginRequired)?;

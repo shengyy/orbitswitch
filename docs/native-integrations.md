@@ -18,6 +18,20 @@ live in [antigravity-integration.md](antigravity-integration.md); verification s
 Read-only macOS probes verified Codex CLI 0.164.0, Codex desktop 26.1021.31345 (`com.openai.codex`),
 Claude Code 2.1.310 and Claude Desktop 3.6556.2 (`com.anthropic.claudefordesktop`).
 
+## Isolated CLI login
+
+- **Discovery and runtime `PATH`**: `native/install.rs` builds a single deduplicated list of absolute
+  search directories from the process `PATH`, standard user toolchain locations (`~/.local/bin`, Volta,
+  mise, asdf, nodenv, fnm, nvm, Bun, pnpm, npm global prefixes, Nix) and system package paths
+  (Homebrew, keg-only `node` formulas, `/usr/local/bin`, MacPorts, macOS `/etc/paths` and
+  `/etc/paths.d`). It preserves the discovered launcher entry path for shim tools while retaining the
+  canonical target for process matching, and exports the same directory list as `PATH` when
+  `native/login.rs` spawns `codex login` or `claude auth login`.
+- **Execution and diagnostics**: login subprocesses run inside a `0700` temporary working and config
+  directory with API-key/provider environment overrides removed. `stderr` is drained into a bounded
+  in-memory buffer and never echoed to logs or IPC; missing script runtimes (`node`, `bun`), broken
+  modules or non-executable launchers return `cli_runtime` instead of `oauth_denied`.
+
 ## Codex
 
 - **Credentials**: `~/.codex/auth.json` by default (`CODEX_HOME` overrides). `config.toml` sets

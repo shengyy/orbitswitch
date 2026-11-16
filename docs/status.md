@@ -31,9 +31,12 @@ Update this page in the same PR whenever verification scope changes.
   - The original OAuth request reaches Google's sign-in form in a fresh Chrome 156.0.8078.48
     incognito context on macOS 27.0.1. Completing private-window account enrollment remains
     **not verified**.
-- **Codex** (CLI 0.164.0, desktop 26.1021.31345) and **Claude** (Claude Code 2.1.310, Desktop 3.6556.2):
+- **Codex** (CLI 0.164.0 / 0.169.0, desktop 26.1021.31345) and **Claude** (Claude Code 2.1.310 / 2.1.325, Desktop 3.6556.2):
   - Read-only probes passed for credential discovery, user/workspace identity, plan and quota parsing
     against live endpoints.
+  - Under a minimal macOS GUI environment (`PATH=/usr/bin:/bin:/usr/sbin:/sbin`, macOS 27.0.1), CLI
+    discovery resolved `codex` 0.169.0, `claude` 2.1.325 and Homebrew `node` v26.12.1 through the
+    exported runtime `PATH`.
   - Claude Desktop's captured browser session authenticated against `claude.ai/api/bootstrap` and
     matched the CLI account and active organization.
   - End-to-end Codex/Claude account switching, process shutdown/relaunch, token renewal and isolated
@@ -64,6 +67,10 @@ Update this page in the same PR whenever verification scope changes.
   settings and cookies, aborting on cookie-schema drift before deletion, distinct rollback-failure
   reporting, missing quota vs. zero, scoped limit deduplication, Codex weekly-only and dual-window
   responses, and comparable-window recommendations.
+- **Native CLI runtime resolution**: preserving symlinked launcher paths while matching canonical
+  executables, numeric semver ordering for versioned Node managers, executing `#!/usr/bin/env node`
+  launchers when the GUI `PATH` omits the Node directory, bounded `stderr` draining, cancellation, and
+  redacted `cli_runtime` vs. `oauth_denied` classification.
 - **Codex local projects**: primary-directory matching, retaining destination project IDs/settings
   and explicit memberships, distinct projects with overlapping secondary roots, saved-account scope,
   cloud/remote exclusion, A → B → A with new chats, idempotent repair, unsupported-state rejection,

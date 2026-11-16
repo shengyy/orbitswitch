@@ -23,7 +23,7 @@ fn kind(_provider: Provider, install: &Install, exe: &std::path::Path) -> Option
     if install.app.as_ref().is_some_and(|root| contains(root, exe)) {
         return Some(ProcessKind::Helper);
     }
-    if install.cli.as_deref() == Some(exe) {
+    if install.cli.as_ref().is_some_and(|cli| cli.matches_exe(exe)) {
         return Some(ProcessKind::Cli);
     }
     None

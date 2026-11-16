@@ -20,6 +20,8 @@ const en = {
   "quota.stale": "Refresh failed · last data {time}",
   "quota.unknownReset": "Reset time not reported",
   "error.client_not_found": "Official client not found. Install its CLI to add an account.",
+  "error.cli_runtime":
+    "Couldn't start the official CLI. Make sure its runtime (such as Node.js) is installed, or reinstall the CLI.",
   "error.subscription_login_required":
     "Sign in with a subscription account in the official client, then import it.",
   "error.desktop_sign_in_required":
@@ -166,6 +168,7 @@ const zh: Record<Key, string> = {
   "quota.stale": "刷新失败 · 数据来自{time}",
   "quota.unknownReset": "服务商未返回重置时间",
   "error.client_not_found": "未找到官方客户端，请安装 CLI 后添加账号。",
+  "error.cli_runtime": "无法启动官方 CLI，请确认已安装其运行环境（如 Node.js）或重新安装 CLI。",
   "error.subscription_login_required": "请先在官方客户端登录订阅账号，再导入。",
   "error.desktop_sign_in_required": "请在 Claude Desktop 和 Claude Code 中登录同一账号，再导入当前账号。",
   "error.live_token_expired": "请打开官方客户端更新当前账号的登录信息，再刷新额度。",

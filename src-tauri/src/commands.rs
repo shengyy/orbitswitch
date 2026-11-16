@@ -36,11 +36,17 @@ pub async fn refresh(orbit: Shared<'_>, force: bool) -> Result<()> {
 
 #[tauri::command]
 pub async fn add_account(orbit: Shared<'_>, provider: Provider) -> Result<String> {
-    if provider == Provider::Antigravity {
+    let result = if provider == Provider::Antigravity {
         accounts::add(&orbit).await
     } else {
         native::add(&orbit, provider).await
+    };
+    if let Err(err) = &result
+        && !matches!(err, Error::OAuthCancelled)
+    {
+        log::warn!("could not add {} account: {err}", provider.key());
     }
+    result
 }
 
 #[tauri::command]

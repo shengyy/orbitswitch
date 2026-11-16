@@ -10,6 +10,8 @@ use serde::{Serialize, Serializer, ser::SerializeStruct};
 pub enum Error {
     #[error("the official client could not be located")]
     ClientNotFound,
+    #[error("CLI runtime error: {0}")]
+    CliRuntime(String),
     #[error("sign in to a subscription account in the official client first")]
     SubscriptionLoginRequired,
     #[error("sign in to this account in Claude Desktop, then import it to bind both clients")]
@@ -68,6 +70,7 @@ impl Error {
     pub fn code(&self) -> &'static str {
         match self {
             Self::ClientNotFound => "client_not_found",
+            Self::CliRuntime(_) => "cli_runtime",
             Self::SubscriptionLoginRequired => "subscription_login_required",
             Self::DesktopSignInRequired => "desktop_sign_in_required",
             Self::LiveTokenExpired => "live_token_expired",
