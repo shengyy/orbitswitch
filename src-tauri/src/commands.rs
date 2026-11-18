@@ -174,11 +174,15 @@ pub async fn import_account(
 ) -> Result<String> {
     if provider == Provider::Antigravity {
         accounts::sync_live(&orbit).await?;
-        orbit
+        let id = orbit
             .state()
             .active_id
             .clone()
-            .ok_or(Error::AccountNotFound)
+            .ok_or(Error::AccountNotFound)?;
+        if orbit.state().registry.get(&id).is_some() {
+            quota::refresh_one(&orbit, &id).await;
+        }
+        Ok(id)
     } else {
         native::import(&orbit, provider, expected_id.as_deref()).await
     }

@@ -146,8 +146,9 @@ impl Registry {
         if self.file.live_fingerprint.as_deref() == Some(fingerprint.as_str()) {
             return Ok(());
         }
-        self.file.live_fingerprint = Some(fingerprint);
+        let previous = self.file.live_fingerprint.replace(fingerprint);
         self.save()
+            .inspect_err(|_| self.file.live_fingerprint = previous)
     }
 
     pub fn ignores_native(&self, provider: Provider, id: &str) -> bool {
@@ -247,6 +248,23 @@ mod tests {
         assert_eq!(ids, ["a", "b"]);
         assert_eq!(reloaded.get("a").unwrap().name.as_deref(), Some("Ada"));
         fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn live_fingerprint_can_be_retried_after_a_failed_write() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut registry = Registry::load(dir.path()).unwrap();
+        registry.set_live_fingerprint("previous".into()).unwrap();
+        let blocker = registry.path.with_extension("json.tmp");
+        fs::create_dir(&blocker).unwrap();
+
+        assert!(registry.set_live_fingerprint("next".into()).is_err());
+        assert_eq!(registry.live_fingerprint(), Some("previous"));
+
+        fs::remove_dir(blocker).unwrap();
+        registry.set_live_fingerprint("next".into()).unwrap();
+        let reloaded = Registry::load(dir.path()).unwrap();
+        assert_eq!(reloaded.live_fingerprint(), Some("next"));
     }
 
     #[test]

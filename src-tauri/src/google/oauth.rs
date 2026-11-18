@@ -145,7 +145,44 @@ pub struct Profile {
     pub picture: Option<String>,
 }
 
-pub async fn userinfo(http: &reqwest::Client, access_token: &str) -> Result<Profile> {
+/// Prefer Google's current profile and use the bundled ID token when UserInfo is unavailable.
+pub async fn profile(
+    http: &reqwest::Client,
+    access_token: &str,
+    id_token: Option<&str>,
+) -> Result<Profile> {
+    let userinfo = if access_token.is_empty() {
+        Err(Error::LiveTokenExpired)
+    } else {
+        userinfo(http, access_token).await
+    };
+    resolve_profile(userinfo, id_token)
+}
+
+fn resolve_profile(userinfo: Result<Profile>, id_token: Option<&str>) -> Result<Profile> {
+    let userinfo = userinfo.and_then(|profile| {
+        if profile.id.trim().is_empty() {
+            Err(Error::Invalid(
+                "Google UserInfo returned no account ID".into(),
+            ))
+        } else {
+            Ok(profile)
+        }
+    });
+    userinfo.or_else(|error| {
+        id_token
+            .and_then(IdClaims::parse)
+            .map(|claims| Profile {
+                id: claims.sub,
+                email: claims.email.unwrap_or_default(),
+                name: claims.name,
+                picture: claims.picture,
+            })
+            .ok_or(error)
+    })
+}
+
+async fn userinfo(http: &reqwest::Client, access_token: &str) -> Result<Profile> {
     let response = http
         .get(USERINFO_ENDPOINT)
         .bearer_auth(access_token)
@@ -178,7 +215,8 @@ impl IdClaims {
     pub fn parse(jwt: &str) -> Option<IdClaims> {
         let payload = jwt.split('.').nth(1)?;
         let bytes = URL_SAFE_NO_PAD.decode(payload.trim_end_matches('=')).ok()?;
-        serde_json::from_slice(&bytes).ok()
+        let claims: IdClaims = serde_json::from_slice(&bytes).ok()?;
+        (!claims.sub.trim().is_empty()).then_some(claims)
     }
 }
 
@@ -192,6 +230,39 @@ mod tests {
         let claims = IdClaims::parse(&format!("h.{payload}.s")).unwrap();
         assert_eq!(claims.sub, "42");
         assert_eq!(claims.email.as_deref(), Some("a@example.com"));
+    }
+
+    #[test]
+    fn resolves_google_identity_without_id_token_claims() {
+        let profile = Profile {
+            id: "verified-subject".into(),
+            email: "sample@example.com".into(),
+            ..Profile::default()
+        };
+        for id_token in [None, Some("unparseable")] {
+            let resolved = resolve_profile(Ok(profile.clone()), id_token).unwrap();
+            assert_eq!(resolved.id, profile.id);
+        }
+        assert!(resolve_profile(Ok(Profile::default()), None).is_err());
+        assert!(resolve_profile(Err(Error::LiveTokenExpired), None).is_err());
+    }
+
+    #[test]
+    fn keeps_id_token_fallback_when_userinfo_is_unavailable() {
+        let payload = URL_SAFE_NO_PAD.encode(r#"{"sub":"42","email":"a@example.com"}"#);
+        let jwt = format!("h.{payload}.s");
+        let resolved = resolve_profile(Err(Error::LiveTokenExpired), Some(&jwt)).unwrap();
+        assert_eq!(resolved.id, "42");
+        assert_eq!(resolved.email, "a@example.com");
+
+        let payload = URL_SAFE_NO_PAD.encode(r#"{"sub":" "}"#);
+        assert!(
+            resolve_profile(
+                Err(Error::LiveTokenExpired),
+                Some(&format!("h.{payload}.s"))
+            )
+            .is_err()
+        );
     }
 
     #[test]

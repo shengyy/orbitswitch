@@ -6,8 +6,8 @@ internals live in [architecture.md](architecture.md); read-only verification com
 
 | Contract | Verified on | Owner module |
 |---|---|---|
-| Signed-in credential storage | 2.19.1–2.26.0, macOS 27 | `antigravity/live.rs` |
-| Credential bundle format | 2.19.1–2.26.0, macOS 27 | `antigravity/credential.rs` |
+| Signed-in credential storage | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/live.rs` |
+| Credential bundle format | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/credential.rs` |
 | OAuth client and scopes | 2.19.1–2.26.0, macOS 27 | `antigravity/oauth_client.rs`, `google/oauth.rs` |
 | Installed version in `app.asar` | 2.23.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/version.rs` |
 | Quota and plan endpoints | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `google/cloudcode.rs` |
@@ -44,7 +44,9 @@ fallback. OrbitSwitch reads the keyring first and writes both locations on switc
 
 - `token` matches `golang.org/x/oauth2.Token`; `expiry` uses RFC 3339 with the local offset.
 - `auth_method` is `consumer` for personal Google accounts.
-- `id_token` carries `sub` and `email`. Unknown fields are preserved on round-trip.
+- `id_token` is optional. OrbitSwitch resolves the account ID and profile from Google UserInfo
+  using the bundle's access token, with usable ID-token claims as a fallback. Unknown fields are
+  preserved on round-trip.
 
 ## OAuth client
 

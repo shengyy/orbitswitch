@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::error::{Error, Result};
-use crate::google::oauth::{IdClaims, TokenGrant};
+use crate::google::oauth::{self, IdClaims, Profile, TokenGrant};
 
 /// Prefix go-keyring adds on macOS before base64-encoding the value.
 const KEYRING_PREFIX: &str = "go-keyring-base64:";
@@ -88,6 +88,10 @@ impl Bundle {
 
     pub fn claims(&self) -> Option<IdClaims> {
         self.id_token.as_deref().and_then(IdClaims::parse)
+    }
+
+    pub async fn profile(&self, http: &reqwest::Client) -> Result<Profile> {
+        oauth::profile(http, &self.token.access_token, self.id_token.as_deref()).await
     }
 }
 

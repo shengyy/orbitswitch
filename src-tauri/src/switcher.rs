@@ -44,8 +44,14 @@ pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
         other => other?,
     };
 
+    let target =
+        oauth::profile(&orbit.http, &grant.access_token, grant.id_token.as_deref()).await?;
+    if target.id != target_id {
+        return Err(Error::VerifyFailed);
+    }
+
     let previous = live::read()?;
-    save_back(orbit, previous.as_ref())?;
+    save_back(orbit, previous.as_ref()).await?;
     let auth_method = previous
         .as_ref()
         .and_then(|bundle| bundle.auth_method.clone())
@@ -91,21 +97,28 @@ pub async fn switch(orbit: &Arc<Orbit>, target_id: &str) -> Result<()> {
 
 /// Antigravity may hold a newer refresh token for the account it is signed
 /// in with (for example after signing in again inside the IDE). Keep it.
-fn save_back(orbit: &Orbit, previous: Option<&Bundle>) -> Result<()> {
-    let Some((bundle, claims)) = previous.and_then(|b| b.claims().map(|c| (b, c))) else {
+async fn save_back(orbit: &Orbit, previous: Option<&Bundle>) -> Result<()> {
+    let Some(bundle) = previous.filter(|bundle| !bundle.token.refresh_token.is_empty()) else {
         return Ok(());
     };
-    let known = orbit.state().registry.get(&claims.sub).is_some();
-    if known && !bundle.token.refresh_token.is_empty() {
-        vault::set(&claims.sub, &bundle.token.refresh_token)?;
+    let profile = match bundle.profile(&orbit.http).await {
+        Ok(profile) => profile,
+        Err(error) => {
+            log::warn!("could not identify the outgoing Antigravity sign-in: {error}");
+            return Ok(());
+        }
+    };
+    if orbit.state().registry.get(&profile.id).is_none() {
+        return Ok(());
     }
-    Ok(())
+    vault::set(&profile.id, &bundle.token.refresh_token)
 }
 
 fn write_and_verify(bundle: &Bundle, target_id: &str) -> Result<()> {
     live::write(bundle)?;
     let written = live::read()?.ok_or(Error::VerifyFailed)?;
     let matches = written.token.refresh_token == bundle.token.refresh_token
+        && written.token.access_token == bundle.token.access_token
         && written
             .claims()
             .is_none_or(|claims| claims.sub == target_id);

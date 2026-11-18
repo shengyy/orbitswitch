@@ -11,7 +11,7 @@ use tokio::sync::oneshot;
 use crate::antigravity::live;
 use crate::error::{Error, Result};
 use crate::google::loopback::Loopback;
-use crate::google::oauth::{self, IdClaims, Pkce, Profile};
+use crate::google::oauth::{self, Pkce, Profile};
 use crate::model::Operation;
 use crate::provider::Provider;
 use crate::registry::{self, Account};
@@ -54,7 +54,8 @@ pub async fn add(orbit: &Arc<Orbit>) -> Result<String> {
         .refresh_token
         .clone()
         .ok_or_else(|| Error::Invalid("Google returned no refresh token".into()))?;
-    let profile = profile(orbit, &grant.access_token, grant.id_token.as_deref()).await?;
+    let profile =
+        oauth::profile(&orbit.http, &grant.access_token, grant.id_token.as_deref()).await?;
     vault::set(&profile.id, &refresh_token)?;
     orbit
         .tokens
@@ -111,58 +112,33 @@ pub async fn sync_live(orbit: &Arc<Orbit>) -> Result<()> {
         orbit.update(|state| state.active_id = None);
         return Ok(());
     };
-    let Some(claims) = bundle.claims() else {
-        log::warn!("signed-in credential has no ID token; active account unknown");
-        return Ok(());
-    };
-    let refresh_token = bundle.token.refresh_token;
-    let fingerprint = registry::fingerprint(&refresh_token);
+    let refresh_token = &bundle.token.refresh_token;
+    let fingerprint = registry::fingerprint(refresh_token);
     let is_new_sign_in = !refresh_token.is_empty()
         && orbit.state().registry.live_fingerprint() != Some(fingerprint.as_str());
+    if !is_new_sign_in && let Some(claims) = bundle.claims() {
+        orbit.update(|state| state.active_id = Some(claims.sub));
+        return Ok(());
+    }
+    let profile = match bundle.profile(&orbit.http).await {
+        Ok(profile) => profile,
+        Err(error) => {
+            orbit.update(|state| state.active_id = None);
+            return Err(error);
+        }
+    };
 
     if is_new_sign_in {
-        vault::set(&claims.sub, &refresh_token)?;
-        orbit.tokens.forget(&claims.sub);
-        let profile = match orbit.access_token(&claims.sub).await {
-            Ok(token) => profile(orbit, &token, bundle.id_token.as_deref()).await?,
-            Err(_) => profile_from_claims(&claims),
-        };
+        vault::set(&profile.id, refresh_token)?;
+        orbit.tokens.forget(&profile.id);
         orbit.update(|state| -> Result<()> {
             state.registry.upsert(account_from(&profile))?;
             state.registry.set_live_fingerprint(fingerprint)
         })?;
         log::info!("adopted the account signed in to Antigravity");
-        let orbit = orbit.clone();
-        let id = claims.sub.clone();
-        tauri::async_runtime::spawn(async move { quota::refresh_one(&orbit, &id).await });
     }
-    orbit.update(|state| state.active_id = Some(claims.sub));
+    orbit.update(|state| state.active_id = Some(profile.id));
     Ok(())
-}
-
-/// Identity from Google's userinfo, falling back to the ID token claims.
-async fn profile(orbit: &Orbit, access_token: &str, id_token: Option<&str>) -> Result<Profile> {
-    match oauth::userinfo(&orbit.http, access_token).await {
-        Ok(profile) if !profile.id.is_empty() => Ok(profile),
-        result => {
-            if let Err(err) = result {
-                log::warn!("userinfo failed: {err}");
-            }
-            id_token
-                .and_then(IdClaims::parse)
-                .map(|claims| profile_from_claims(&claims))
-                .ok_or_else(|| Error::Invalid("could not identify the Google account".into()))
-        }
-    }
-}
-
-fn profile_from_claims(claims: &IdClaims) -> Profile {
-    Profile {
-        id: claims.sub.clone(),
-        email: claims.email.clone().unwrap_or_default(),
-        name: claims.name.clone(),
-        picture: claims.picture.clone(),
-    }
 }
 
 fn account_from(profile: &Profile) -> Account {

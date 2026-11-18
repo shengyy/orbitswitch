@@ -82,9 +82,10 @@ failure. A default-browser launch failure keeps the copy action available.
 
 ### Antigravity switch sequence
 
-1. **Preparing**: redeem the target account's refresh token; stop immediately on `invalid_grant` and
-   mark the account `Reauth`.
-2. Save the outgoing live refresh token back to `vault.rs`.
+1. In **Preparing**, redeem the target account's refresh token and confirm its Google account ID.
+   On `invalid_grant`, mark the target account `Reauth` and end the operation.
+2. Resolve the outgoing live identity and save its refresh token to `vault.rs` when it matches a
+   saved account.
 3. **Closing**: stop Antigravity, its helpers, language server and `agy` CLI (`SIGTERM` / `taskkill`,
    then force-kill after 8 s).
 4. **Writing**: write keychain and `~/.gemini/jetski-standalone-oauth-token`, read back and verify;

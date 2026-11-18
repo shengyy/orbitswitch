@@ -29,6 +29,9 @@ Update this page in the same PR whenever verification scope changes.
     week for an eligible Pro account on 2.24.0 ([contributor verification](https://github.com/shengyy/orbitswitch/pull/27))
     and on 2.32.2 (macOS 27.2.1). On 2.32.2, the tested Ultra Lite account listed Argon in the shared
     Gemini group. Both tiers also returned the regular Gemini and Claude/GPT quota windows.
+  - On 2.32.2 (macOS 27.2.1), the identity resolver used Google UserInfo for a live credential
+    without usable ID-token claims. The same access token returned the account's plan and quota.
+    Switching such a session in the installed app remains **not verified**.
   - Independent plan and quota handling: an expired Pro account updates to `Free` even when quota
     returns HTTP 403.
   - Native menus, clipboard copy and Open at Login through SMAppService.
@@ -64,6 +67,8 @@ Update this page in the same PR whenever verification scope changes.
 - **Argon quota**: synthetic coverage preserves reset times and proto3 omitted-zero handling. The
   loopback check uses the current installed hub identity. The recommendation test covers accounts
   where only one has a separate Argon week.
+- **Antigravity identity**: synthetic coverage verifies missing or unreadable ID tokens, the
+  ID-token fallback, rejection of an unresolved identity, and retrying a failed fingerprint write.
 - **Account storage upgrades**: merging earlier and current registries, retaining current grants and
   desktop bindings, honoring explicit native-account removals, original Google-only metadata,
   malformed/unsupported source rejection, missing grants, failed token writes/readback, failed
