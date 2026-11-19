@@ -48,6 +48,7 @@ export async function showAppMenu(
   event: MouseEvent,
   version: string,
   update: { checking: boolean; enabled: boolean; onCheck: () => void },
+  dataActions?: { onExport: () => void; onImport: () => void },
 ) {
   const at = anchor(event);
   const launchAtLogin = await ipc.autostartEnabled().catch(() => false);
@@ -59,6 +60,9 @@ export async function showAppMenu(
         enabled: update.enabled && !update.checking,
         action: update.onCheck,
       },
+      "separator",
+      { text: t("menu.exportAccounts"), action: dataActions?.onExport },
+      { text: t("menu.importAccounts"), action: dataActions?.onImport },
       "separator",
       {
         text: t("menu.launchAtLogin"),

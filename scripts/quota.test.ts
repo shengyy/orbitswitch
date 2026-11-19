@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { available, bestAccountId } from "../src/quota";
+import { available, bestAccountId, sortAccounts } from "../src/quota";
 import type { Account } from "../src/types";
 
 function account(id: string, remaining: number, provider: Account["provider"] = "codex"): Account {
@@ -99,5 +99,29 @@ describe("account recommendations", () => {
   });
   test("a fresh compatible account with more remaining share is recommended", () => {
     expect(bestAccountId([account("active", 0), account("other", 0.8)], "active")).toBe("other");
+  });
+
+  test("sortAccounts prioritizes active account and soonest weekly reset, deprioritizing < 5%", () => {
+    const now = 1700000000000;
+    const a1 = weeklyAccount("a1", 0.8);
+    const a2 = weeklyAccount("a2", 0.5);
+    const a3 = weeklyAccount("a3", 0.03); // exhausted (< 5%)
+    const aActive = weeklyAccount("active", 0.7);
+
+    if (a1.quota.status === "ready" && a1.quota.groups[0].weekly) {
+      a1.quota.groups[0].weekly.resetAt = new Date(now + 6 * 86400000).toISOString(); // 6 days
+    }
+    if (a2.quota.status === "ready" && a2.quota.groups[0].weekly) {
+      a2.quota.groups[0].weekly.resetAt = new Date(now + 2 * 86400000).toISOString(); // 2 days (soonest)
+    }
+    if (a3.quota.status === "ready" && a3.quota.groups[0].weekly) {
+      a3.quota.groups[0].weekly.resetAt = new Date(now + 1 * 86400000).toISOString(); // 1 day but < 5%
+    }
+    if (aActive.quota.status === "ready" && aActive.quota.groups[0].weekly) {
+      aActive.quota.groups[0].weekly.resetAt = new Date(now + 7 * 86400000).toISOString();
+    }
+
+    const sorted = sortAccounts([a1, a3, aActive, a2], "active", now);
+    expect(sorted.map((a) => a.id)).toEqual(["active", "a2", "a1", "a3"]);
   });
 });

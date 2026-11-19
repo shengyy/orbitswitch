@@ -39,10 +39,76 @@ export function bestAccountId(accounts: Account[], activeId: string | null): str
       (active && (account.provider !== active.provider || shape(account) !== shape(active)))
     )
       continue;
+    const metrics = getWeeklyMetrics(account);
+    if (metrics.hasWeekly && metrics.minRemaining < 0.05) continue;
     const s = score(account);
     if (s !== null && s > 0 && (best === null || s > best.score)) best = { id: account.id, score: s };
   }
   return best && best.score > activeScore + 0.05 ? best.id : null;
+}
+
+export interface WeeklyMetrics {
+  hasWeekly: boolean;
+  minRemaining: number;
+  earliestResetMs: number;
+}
+
+export function getWeeklyMetrics(account: Account, now = Date.now()): WeeklyMetrics {
+  if (account.quota.status !== "ready") {
+    return { hasWeekly: false, minRemaining: 1, earliestResetMs: Infinity };
+  }
+  let hasWeekly = false;
+  let minRemaining = 1;
+  let earliestResetMs = Infinity;
+
+  for (const group of account.quota.groups) {
+    if (group.weekly) {
+      hasWeekly = true;
+      if (group.weekly.remaining < minRemaining) {
+        minRemaining = group.weekly.remaining;
+      }
+      if (group.weekly.resetAt) {
+        const ms = new Date(group.weekly.resetAt).getTime() - now;
+        if (ms > 0 && ms < earliestResetMs) {
+          earliestResetMs = ms;
+        }
+      }
+    }
+  }
+
+  return { hasWeekly, minRemaining, earliestResetMs };
+}
+
+/**
+ * Sorts accounts:
+ * 1. The active account leads the list.
+ * 2. Accounts with weekly quota remaining < 5% are deprioritized to the very end.
+ * 3. Eligible accounts are sorted by earliest weekly reset time ascending (use soon-to-reset first).
+ * 4. Ties break by larger remaining weekly share.
+ */
+export function sortAccounts(accounts: Account[], activeId: string | null, now = Date.now()): Account[] {
+  return [...accounts].sort((a, b) => {
+    const aActive = a.id === activeId;
+    const bActive = b.id === activeId;
+    if (aActive !== bActive) return aActive ? -1 : 1;
+
+    const aMetrics = getWeeklyMetrics(a, now);
+    const bMetrics = getWeeklyMetrics(b, now);
+
+    const aExhausted = aMetrics.hasWeekly && aMetrics.minRemaining < 0.05;
+    const bExhausted = bMetrics.hasWeekly && bMetrics.minRemaining < 0.05;
+    if (aExhausted !== bExhausted) return aExhausted ? 1 : -1;
+
+    if (aMetrics.earliestResetMs !== bMetrics.earliestResetMs) {
+      return aMetrics.earliestResetMs - bMetrics.earliestResetMs;
+    }
+
+    if (aMetrics.minRemaining !== bMetrics.minRemaining) {
+      return bMetrics.minRemaining - aMetrics.minRemaining;
+    }
+
+    return 0;
+  });
 }
 
 function shape(account: Account): string {

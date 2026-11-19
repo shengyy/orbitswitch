@@ -120,6 +120,30 @@ pub async fn sync_live(orbit: &Arc<Orbit>) -> Result<()> {
         orbit.update(|state| state.active_id = Some(claims.sub));
         return Ok(());
     }
+
+    // When id_token claims are absent (or access_token expired), check if the
+    // live refresh token matches an existing registered Antigravity account.
+    if !refresh_token.is_empty() {
+        let matched = orbit
+            .state()
+            .registry
+            .accounts()
+            .iter()
+            .find(|a| {
+                a.provider == Provider::Antigravity
+                    && vault::get(&a.id).ok().flatten().as_deref() == Some(refresh_token.as_str())
+            })
+            .map(|a| a.id.clone());
+
+        if let Some(id) = matched {
+            orbit.update(|state| -> Result<()> {
+                state.active_id = Some(id);
+                state.registry.set_live_fingerprint(fingerprint)
+            })?;
+            return Ok(());
+        }
+    }
+
     let profile = match bundle.profile(&orbit.http).await {
         Ok(profile) => profile,
         Err(error) => {

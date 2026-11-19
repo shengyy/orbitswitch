@@ -10,9 +10,9 @@ use tauri_plugin_opener::OpenerExt;
 use crate::antigravity::process;
 use crate::error::{Error, Result};
 use crate::model::{RelatedProcess, Snapshot, UpdateInfo};
+use crate::provider::Provider;
 use crate::state::Orbit;
-use crate::{accounts, autostart, quota, scheduler, shell, switcher, updater};
-use crate::{native, provider::Provider};
+use crate::{accounts, autostart, native, quota, scheduler, shell, switcher, transfer, updater};
 
 type Shared<'a> = State<'a, Arc<Orbit>>;
 
@@ -186,4 +186,14 @@ pub async fn import_account(
     } else {
         native::import(&orbit, provider, expected_id.as_deref()).await
     }
+}
+
+#[tauri::command]
+pub async fn export_accounts(orbit: Shared<'_>) -> Result<Option<usize>> {
+    transfer::export_all(&orbit).await
+}
+
+#[tauri::command]
+pub async fn import_accounts(orbit: Shared<'_>) -> Result<Option<usize>> {
+    transfer::import_from_file(&orbit).await
 }

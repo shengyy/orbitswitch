@@ -19,6 +19,7 @@ mod switcher;
 #[cfg(test)]
 mod system_tests;
 mod tokens;
+mod transfer;
 mod tray;
 mod updater;
 mod vault;
@@ -75,6 +76,8 @@ pub fn run() {
             commands::set_autostart,
             commands::check_update,
             commands::install_update,
+            commands::export_accounts,
+            commands::import_accounts,
             commands::quit,
         ])
         .run(tauri::generate_context!())
