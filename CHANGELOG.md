@@ -9,6 +9,7 @@ All notable changes to OrbitSwitch are documented here. The format follows
 ### Added
 
 - Export and import all account configurations and credentials through the app menu (#export-import).
+- Display aggregate 5H and weekly quota progress bars above the account list, dynamically capping 5H capacity based on weekly limits.
 - Display weekly quota reset countdown badge on account cards and highlight the active account with an animated marching-ants border.
 - Smart account list ordering prioritizing accounts with the earliest weekly reset and deprioritizing accounts with depleted quota (< 5%).
 

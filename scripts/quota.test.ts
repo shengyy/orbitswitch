@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { available, bestAccountId, sortAccounts } from "../src/quota";
+import { available, bestAccountId, calculateAggregateQuota, sortAccounts } from "../src/quota";
 import type { Account } from "../src/types";
 
 function account(id: string, remaining: number, provider: Account["provider"] = "codex"): Account {
@@ -123,5 +123,68 @@ describe("account recommendations", () => {
 
     const sorted = sortAccounts([a1, a3, aActive, a2], "active", now);
     expect(sorted.map((a) => a.id)).toEqual(["active", "a2", "a1", "a3"]);
+  });
+
+  test("calculateAggregateQuota clamps 5H quota to weekly * 5 when weekly is low (e.g. 1% week -> 5% 5h)", () => {
+    // Account with 100% 5h, but only 1% week: effective 5h must be capped at 5%
+    const acc1 = account("acc1", 1.0);
+    if (acc1.quota.status === "ready") {
+      acc1.quota.groups[0].weekly = {
+        remaining: 0.01,
+        resetAt: null,
+        label: "weekly",
+        durationMinutes: 10080,
+      };
+    }
+    const res1 = calculateAggregateQuota([acc1]);
+    expect(res1.weekly).toBeCloseTo(0.01);
+    expect(res1.fiveHour).toBeCloseTo(0.05);
+
+    // Account with 100% 5h, 20% week: effective 5h can reach 100%
+    const acc2 = account("acc2", 1.0);
+    if (acc2.quota.status === "ready") {
+      acc2.quota.groups[0].weekly = {
+        remaining: 0.2,
+        resetAt: null,
+        label: "weekly",
+        durationMinutes: 10080,
+      };
+    }
+    const res2 = calculateAggregateQuota([acc2]);
+    expect(res2.weekly).toBeCloseTo(0.2);
+    expect(res2.fiveHour).toBeCloseTo(1.0);
+
+    // Account with 80% 5h, 10% week: effective 5h is min(0.8, 0.1 * 5) = 50%
+    const acc3 = account("acc3", 0.8);
+    if (acc3.quota.status === "ready") {
+      acc3.quota.groups[0].weekly = {
+        remaining: 0.1,
+        resetAt: null,
+        label: "weekly",
+        durationMinutes: 10080,
+      };
+    }
+    const res3 = calculateAggregateQuota([acc3]);
+    expect(res3.weekly).toBeCloseTo(0.1);
+    expect(res3.fiveHour).toBeCloseTo(0.5);
+  });
+
+  test("calculateAggregateQuota computes mean across multiple accounts including failed as 0", () => {
+    const acc1 = account("acc1", 1.0);
+    if (acc1.quota.status === "ready") {
+      acc1.quota.groups[0].weekly = {
+        remaining: 1.0,
+        resetAt: null,
+        label: "weekly",
+        durationMinutes: 10080,
+      };
+    }
+    const acc2 = account("acc2", 0);
+    acc2.quota = { status: "reauth" };
+
+    const res = calculateAggregateQuota([acc1, acc2]);
+    expect(res.accountCount).toBe(2);
+    expect(res.fiveHour).toBeCloseTo(0.5);
+    expect(res.weekly).toBeCloseTo(0.5);
   });
 });

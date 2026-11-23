@@ -7,6 +7,7 @@ import { EmptyState } from "./components/empty-state";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 import { ProviderTabs } from "./components/provider-tabs";
+import { ProviderQuotaSummary } from "./components/quota-summary";
 import { ResultSheet } from "./components/result-sheet";
 import { CheckingUpdateSheet, UpdateBanner, UpdateSheet } from "./components/update-sheet";
 import { displayName } from "./format";
@@ -239,6 +240,7 @@ export function App() {
       )}
 
       <div className="accounts-panel" id="accounts-panel" role="tabpanel" aria-labelledby={`tab-${provider}`}>
+        {visibleAccounts.length > 0 && <ProviderQuotaSummary accounts={visibleAccounts} />}
         {accounts.length === 0 ? (
           <EmptyState disabled={busy || !status.installed} onAdd={addAccount} client={vars.client} />
         ) : (
