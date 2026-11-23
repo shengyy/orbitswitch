@@ -7,6 +7,7 @@ import { EmptyState } from "./components/empty-state";
 import { Footer } from "./components/footer";
 import { Header } from "./components/header";
 import { ProviderTabs } from "./components/provider-tabs";
+import { ProviderQuotaSummary } from "./components/quota-summary";
 import { ResultSheet } from "./components/result-sheet";
 import { CheckingUpdateSheet, UpdateBanner, UpdateSheet } from "./components/update-sheet";
 import { displayName } from "./format";
@@ -17,7 +18,7 @@ import { errorText, t } from "./i18n";
 import { asBackendError, ipc, onShown } from "./ipc";
 import { showAccountMenu, showAppMenu } from "./menus";
 import { PROVIDERS, providerInfo } from "./providers";
-import { bestAccountId } from "./quota";
+import { bestAccountId, sortAccounts } from "./quota";
 import type { Account, ProcessKind, Provider, RelatedProcess, UpdateInfo } from "./types";
 import "./app.css";
 
@@ -99,10 +100,7 @@ export function App() {
   const vars = providerInfo[provider];
   const visibleAccounts = snapshot.accounts.filter((account) => account.provider === provider);
   const best = bestAccountId(visibleAccounts, status.activeId);
-  // The account in use leads the list; the rest keep the order they were added in.
-  const accounts = [...visibleAccounts].sort(
-    (a, b) => Number(b.id === status.activeId) - Number(a.id === status.activeId),
-  );
+  const accounts = sortAccounts(visibleAccounts, status.activeId);
 
   const addAccount = () => ipc.addAccount(provider).catch(fail);
   const checkUpdate = async () => {
@@ -124,6 +122,32 @@ export function App() {
           : current,
       );
     }
+  };
+  const exportAccounts = () => {
+    ipc
+      .exportAccounts()
+      .then((count) => {
+        if (count === null || count === undefined) return;
+        setDialog({
+          kind: "result",
+          tone: count > 0 ? "success" : "error",
+          message: count > 0 ? t("export.done", { count }) : t("export.empty"),
+        });
+      })
+      .catch(fail);
+  };
+  const importAccounts = () => {
+    ipc
+      .importAccounts()
+      .then((count) => {
+        if (count === null || count === undefined) return;
+        setDialog({
+          kind: "result",
+          tone: count > 0 ? "success" : "error",
+          message: count > 0 ? t("import.done", { count }) : t("import.none"),
+        });
+      })
+      .catch(fail);
   };
   const askSwitch = async (account: Account) =>
     setDialog({ kind: "switch", account, processes: await ipc.runningProcesses(account.provider) });
@@ -181,11 +205,19 @@ export function App() {
         status={status}
         onRefresh={() => ipc.refresh(true).catch(fail)}
         onMore={(event) =>
-          showAppMenu(event, snapshot.version, {
-            checking: snapshot.update.checking,
-            enabled: !busy,
-            onCheck: checkUpdate,
-          })
+          showAppMenu(
+            event,
+            snapshot.version,
+            {
+              checking: snapshot.update.checking,
+              enabled: !busy,
+              onCheck: checkUpdate,
+            },
+            {
+              onExport: exportAccounts,
+              onImport: importAccounts,
+            },
+          )
         }
       />
 
@@ -208,6 +240,7 @@ export function App() {
       )}
 
       <div className="accounts-panel" id="accounts-panel" role="tabpanel" aria-labelledby={`tab-${provider}`}>
+        {visibleAccounts.length > 0 && <ProviderQuotaSummary accounts={visibleAccounts} />}
         {accounts.length === 0 ? (
           <EmptyState disabled={busy || !status.installed} onAdd={addAccount} client={vars.client} />
         ) : (

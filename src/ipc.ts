@@ -23,6 +23,8 @@ export const ipc = {
   setAutostart: (enabled: boolean) => invoke<void>("set_autostart", { enabled }),
   checkUpdate: () => invoke<UpdateInfo | null>("check_update"),
   installUpdate: (version: string) => invoke<void>("install_update", { version }),
+  exportAccounts: () => invoke<number | null>("export_accounts"),
+  importAccounts: () => invoke<number | null>("import_accounts"),
   quit: () => invoke<void>("quit"),
 };
 

@@ -1,0 +1,23 @@
+.provider-quota-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 10px 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--fill-1);
+  box-shadow: inset 0 0 0 0.5px var(--line);
+}
+
+.provider-quota-summary .meter {
+  grid-template-columns: auto 1fr 32px;
+}
+
+.provider-quota-summary .meter-label {
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.provider-quota-summary .meter-value {
+  font-weight: 600;
+}
