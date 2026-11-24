@@ -6,6 +6,17 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-24
+
+### Removed
+
+- Retire the dedicated Argon quota display following Antigravity's move to the shared Gemini pool.
+
+### Fixed
+
+- Show Antigravity quota rows only for groups with a reported usage window, including accounts that
+  only receive Gemini quota.
+
 ## [0.3.0] - 2026-11-18
 
 ### Added

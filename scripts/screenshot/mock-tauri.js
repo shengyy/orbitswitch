@@ -23,14 +23,13 @@ const group = (key, label, models, [fiveHour, weekly, fiveReset, weekReset]) => 
   weekly: { remaining: weekly, resetAt: at(weekReset), label: "weekly", durationMinutes: 10080 },
   extra: [],
 });
-const quota = (gemini, claude, argon = true) => ({
+const quota = (gemini, claude, geminiModels = ["Gemini 4 Neon", "Gemini 4 Carbon", "Gemini 4 Hydrogen"]) => ({
   status: "ready",
   fetchedAt: at(-MIN),
   stale: false,
   groups: [
-    group("gemini", "Gemini", ["Gemini Flash", "Gemini Pro"], gemini),
-    ...(argon ? [group("argon", "Argon", [], [null, 0.75, 0, 120 * HOUR])] : []),
-    group("claude", "Claude", ["Claude Opus", "Claude Sonnet", "GPT-OSS"], claude),
+    group("gemini", "Gemini", geminiModels, gemini),
+    ...(claude ? [group("claude", "Claude", ["Claude Opus 5.5", "Claude Sonnet 5.5"], claude)] : []),
   ],
 });
 const pro = { kind: "pro", name: "Google AI Pro" };
@@ -79,7 +78,7 @@ const snapshot = {
       name: "Grace Hopper",
       picture: null,
       plan: pro,
-      quota: quota([1, 0.97, 5 * HOUR, 130 * HOUR], [0.94, 0.83, 4 * HOUR, 130 * HOUR]),
+      quota: quota([1, 0.97, 5 * HOUR, 130 * HOUR], null, ["Gemini 4 Hydrogen"]),
     },
     {
       provider: "antigravity",
@@ -89,7 +88,7 @@ const snapshot = {
       name: "Alan Turing",
       picture: null,
       plan: { kind: "ultra", name: "Google AI Ultra" },
-      quota: quota([0.74, 0.9, 2 * HOUR, 40 * HOUR], [0.31, 0.58, 3 * HOUR + 20 * MIN, 40 * HOUR], false),
+      quota: quota([0.74, 0.9, 2 * HOUR, 40 * HOUR], [0.31, 0.58, 3 * HOUR + 20 * MIN, 40 * HOUR]),
     },
   ],
 };

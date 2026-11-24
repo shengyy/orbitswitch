@@ -24,8 +24,7 @@ struct RawGroup {
     display_name: String,
     #[serde(default)]
     description: String,
-    #[serde(default)]
-    buckets: Vec<RawBucket>,
+    buckets: Option<Vec<RawBucket>>,
 }
 
 #[derive(Deserialize)]
@@ -93,7 +92,7 @@ impl<'a> Client<'a> {
                 serde_json::json!({}),
             )
             .await?;
-        Ok(summary.groups.into_iter().map(parse_group).collect())
+        Ok(summary.groups.into_iter().filter_map(parse_group).collect())
     }
 
     /// The Google AI subscription behind the account.
@@ -109,22 +108,41 @@ impl<'a> Client<'a> {
     }
 }
 
-fn parse_group(group: RawGroup) -> QuotaGroup {
-    let lower = group.display_name.to_lowercase();
-    let key = if lower.trim() == "gemini 4 argon" {
-        GroupKey::Argon
-    } else if lower.contains("gemini") {
-        GroupKey::Gemini
-    } else if lower.contains("claude") {
-        GroupKey::Claude
-    } else {
-        GroupKey::Other
+fn parse_group(group: RawGroup) -> Option<QuotaGroup> {
+    let buckets = group.buckets?;
+    let window = |name: &str| {
+        buckets
+            .iter()
+            .find(|bucket| bucket.window == name)
+            .map(|bucket| QuotaWindow {
+                remaining: bucket.remaining_fraction.clamp(0.0, 1.0),
+                reset_at: bucket.reset_time,
+                label: name.into(),
+                duration_minutes: Some(if name == "5h" { 300 } else { 10080 }),
+            })
     };
-    let label = match key {
-        GroupKey::Gemini => "Gemini".to_owned(),
-        GroupKey::Argon => "Argon".to_owned(),
-        GroupKey::Claude => "Claude".to_owned(),
-        _ => group.display_name.clone(),
+    let five_hour = window("5h");
+    let weekly = window("weekly");
+    let extra: Vec<_> = buckets
+        .into_iter()
+        .filter(|bucket| {
+            !bucket.window.trim().is_empty() && !matches!(bucket.window.as_str(), "5h" | "weekly")
+        })
+        .map(|bucket| QuotaWindow {
+            remaining: bucket.remaining_fraction.clamp(0.0, 1.0),
+            reset_at: bucket.reset_time,
+            label: bucket.window,
+            duration_minutes: None,
+        })
+        .collect();
+    if five_hour.is_none() && weekly.is_none() && extra.is_empty() {
+        return None;
+    }
+
+    let (key, label) = match group.display_name.trim().to_ascii_lowercase().as_str() {
+        "gemini models" => (GroupKey::Gemini, "Gemini".to_owned()),
+        "claude and gpt models" => (GroupKey::Claude, "Claude".to_owned()),
+        _ => (GroupKey::Other, group.display_name),
     };
     // "Models within this group: Claude Opus, Claude Sonnet, GPT-OSS"
     let models = group
@@ -137,36 +155,14 @@ fn parse_group(group: RawGroup) -> QuotaGroup {
                 .collect()
         })
         .unwrap_or_default();
-    let window = |name: &str| {
-        group
-            .buckets
-            .iter()
-            .find(|b| b.window == name)
-            .map(|b| QuotaWindow {
-                remaining: b.remaining_fraction.clamp(0.0, 1.0),
-                reset_at: b.reset_time,
-                label: name.into(),
-                duration_minutes: Some(if name == "5h" { 300 } else { 10080 }),
-            })
-    };
-    QuotaGroup {
+    Some(QuotaGroup {
         key,
         label,
         models,
-        five_hour: window("5h"),
-        weekly: window("weekly"),
-        extra: group
-            .buckets
-            .iter()
-            .filter(|b| b.window != "5h" && b.window != "weekly")
-            .map(|b| QuotaWindow {
-                remaining: b.remaining_fraction.clamp(0.0, 1.0),
-                reset_at: b.reset_time,
-                label: b.window.clone(),
-                duration_minutes: None,
-            })
-            .collect(),
-    }
+        five_hour,
+        weekly,
+        extra,
+    })
 }
 
 #[derive(Deserialize)]

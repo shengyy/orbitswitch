@@ -25,10 +25,9 @@ Update this page in the same PR whenever verification scope changes.
     switches with Antigravity reopening on the target account.
   - Installed-version `User-Agent` discovery from `Resources/app.asar`, returning both Gemini and
     Claude/GPT quota groups across Pro and Ultra accounts.
-  - Read-only quota and plan probes with the installed hub `User-Agent` returned a separate Argon
-    week for an eligible Pro account on 2.24.0 ([contributor verification](https://github.com/shengyy/orbitswitch/pull/27))
-    and on 2.32.2 (macOS 27.2.1). On 2.32.2, the tested Ultra Lite account listed Argon in the shared
-    Gemini group. Both tiers also returned the regular Gemini and Claude/GPT quota windows.
+  - Read-only quota and plan probes on 2.34.0 (macOS 27.2.1) returned a shared Gemini group and
+    a separate Claude/GPT group, each with a five-hour and weekly window, for the tested Pro
+    and Ultra accounts.
   - On 2.32.2 (macOS 27.2.1), the identity resolver used Google UserInfo for a live credential
     without usable ID-token claims. The same access token returned the account's plan and quota.
     Switching such a session in the installed app remains **not verified**.
@@ -64,9 +63,9 @@ Update this page in the same PR whenever verification scope changes.
 
 ## Synthetic and loopback verification
 
-- **Argon quota**: synthetic coverage preserves reset times and proto3 omitted-zero handling. The
-  loopback check uses the current installed hub identity. The recommendation test covers accounts
-  where only one has a separate Argon week.
+- **Antigravity quota**: the loopback check uses the current installed hub identity. Synthetic
+  cases cover reset times, distinguishing empty groups from exhausted windows, and preserving
+  additional reported groups outside account rankings.
 - **Antigravity identity**: synthetic coverage verifies missing or unreadable ID tokens, the
   ID-token fallback, rejection of an unresolved identity, and retrying a failed fingerprint write.
 - **Account storage upgrades**: merging earlier and current registries, retaining current grants and

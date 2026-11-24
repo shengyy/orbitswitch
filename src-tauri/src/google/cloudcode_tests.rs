@@ -79,18 +79,19 @@ async fn sends_installed_version_and_refreshes_it_after_an_upgrade() {
                 assert!(ua.starts_with("OrbitSwitch/"));
                 // The upstream gate returns HTTP 200 with only Claude if
                 // the vendor product/version token is missing or stale.
-                let groups = if ua.contains(&format!("antigravity/hub/{version}")) {
-                    serde_json::json!([
-                        {"displayName":"Gemini Models"},
-                        {"displayName":"Claude and GPT models"},
-                        {"displayName":"Gemini 4 Argon","buckets":[{
-                            "bucketId":"gemini-argon-wtu-weekly","window":"weekly",
-                            "remainingFraction":0.75,"resetTime":"2026-11-01T12:00:00Z"
-                        }]}
-                    ])
-                } else {
-                    serde_json::json!([{"displayName":"Claude and GPT models"}])
-                };
+                let mut groups = vec![serde_json::json!({
+                    "displayName":"Claude and GPT models",
+                    "buckets":[{"window":"5h","remainingFraction":0.8}]
+                })];
+                if ua.contains(&format!("antigravity/hub/{version}")) {
+                    groups.insert(
+                        0,
+                        serde_json::json!({
+                            "displayName":"Gemini Models",
+                            "buckets":[{"window":"5h","remainingFraction":0.9}]
+                        }),
+                    );
+                }
                 let body = if method == "retrieveUserQuotaSummary" {
                     serde_json::json!({"groups": groups})
                 } else {
@@ -104,10 +105,9 @@ async fn sends_installed_version_and_refreshes_it_after_an_upgrade() {
             }
         });
         let groups = client.quota("synthetic-token").await.unwrap();
-        assert_eq!(groups.len(), 3);
+        assert_eq!(groups.len(), 2);
         assert_eq!(groups[0].key, GroupKey::Gemini);
         assert_eq!(groups[1].key, GroupKey::Claude);
-        assert_eq!(groups[2].key, GroupKey::Argon);
         assert_eq!(
             client.plan("synthetic-token").await.unwrap().kind,
             PlanKind::Pro
@@ -117,64 +117,29 @@ async fn sends_installed_version_and_refreshes_it_after_an_upgrade() {
 }
 
 #[test]
-fn preserves_shared_argon_weekly_quota_when_summary_reports_separate_pool() {
-    // Given a Pro summary with separate Flash and shared Argon pools.
-    for fraction in [Some(0.375), None] {
-        let mut bucket = serde_json::json!({
-            "bucketId":"gemini-argon-wtu-weekly",
-            "displayName":"Gemini 4 Argon Weekly Limit",
-            "window":"weekly","resetTime":"2026-11-01T12:00:00Z"
-        });
-        if let Some(remaining) = fraction {
-            bucket["remainingFraction"] = serde_json::json!(remaining);
-        }
-        let summary: SummaryResponse = serde_json::from_value(serde_json::json!({"groups":[
-            {"displayName":"Gemini Models","buckets":[
-                {"window":"weekly","remainingFraction":0.9}
-            ]},
-            {"displayName":"Gemini 4 Argon",
-             "description":"For paid Pro plans, Argon quota is separate.",
-             "buckets":[bucket]}
-        ]}))
-        .unwrap();
-
-        // When the summary is converted to the frontend snapshot.
-        let groups: Vec<_> = summary.groups.into_iter().map(parse_group).collect();
-
-        // Then Argon stays one weekly row, distinct from Gemini, with its reset.
-        assert_eq!(groups.len(), 2);
-        assert_eq!(groups[0].key, GroupKey::Gemini);
-        let argon = &groups[1];
-        assert_eq!(argon.key, GroupKey::Argon);
-        assert_eq!(argon.label, "Argon");
-        assert!(argon.models.is_empty());
-        assert!(argon.five_hour.is_none());
-        assert!(argon.extra.is_empty());
-        let weekly = argon.weekly.as_ref().unwrap();
-        assert!((weekly.remaining - fraction.unwrap_or(0.0)).abs() < f64::EPSILON);
-        assert_eq!(weekly.duration_minutes, Some(10080));
-        assert_eq!(
-            weekly.reset_at,
-            Some("2026-11-01T12:00:00Z".parse().unwrap())
-        );
-    }
-}
-
-#[test]
 fn parses_quota_summary() {
     let raw = r#"{"groups":[
-      {"displayName":"Gemini Models","description":"Models within this group: Gemini 3.8 Flash, Gemini 4 Argon",
+      {"displayName":"Gemini Models","description":"Models within this group: Gemini 4 Neon, Gemini 4 Carbon, Gemini 4 Hydrogen",
        "buckets":[{"window":"weekly","remainingFraction":0.96,"resetTime":"2026-10-10T09:23:35Z"},
                   {"window":"5h","remainingFraction":0.5,"resetTime":"2026-10-03T14:23:35Z"}]},
       {"displayName":"Claude and GPT models","description":"Models within this group: Claude Opus, Claude Sonnet, GPT-OSS",
        "buckets":[{"window":"5h","resetTime":"2026-10-03T14:23:35Z"}]}]}"#;
     let summary: SummaryResponse = serde_json::from_str(raw).unwrap();
-    let groups: Vec<_> = summary.groups.into_iter().map(parse_group).collect();
+    let groups: Vec<_> = summary.groups.into_iter().filter_map(parse_group).collect();
     assert_eq!(groups.len(), 2);
     assert_eq!(groups[0].key, GroupKey::Gemini);
-    assert_eq!(groups[0].models, ["Gemini 3.8 Flash", "Gemini 4 Argon"]);
+    assert_eq!(
+        groups[0].models,
+        ["Gemini 4 Neon", "Gemini 4 Carbon", "Gemini 4 Hydrogen"]
+    );
     assert_eq!(groups[0].five_hour.as_ref().unwrap().remaining, 0.5);
-    assert_eq!(groups[0].weekly.as_ref().unwrap().remaining, 0.96);
+    let weekly = groups[0].weekly.as_ref().unwrap();
+    assert_eq!(weekly.remaining, 0.96);
+    assert_eq!(weekly.duration_minutes, Some(10080));
+    assert_eq!(
+        weekly.reset_at,
+        Some("2026-10-10T09:23:35Z".parse().unwrap())
+    );
     assert_eq!(groups[1].key, GroupKey::Claude);
     assert_eq!(
         groups[1].models,
@@ -183,6 +148,29 @@ fn parses_quota_summary() {
     // proto3 omitted the zero fraction
     assert_eq!(groups[1].five_hour.as_ref().unwrap().remaining, 0.0);
     assert!(groups[1].weekly.is_none());
+}
+
+#[test]
+fn preserves_the_label_and_quota_of_an_additional_gemini_group() {
+    let raw = r#"{"displayName":"Gemini Preview Models",
+        "buckets":[{"window":"daily","remainingFraction":0.75}]}"#;
+    let group = parse_group(serde_json::from_str(raw).unwrap()).unwrap();
+    assert_eq!(group.key, GroupKey::Other);
+    assert_eq!(group.label, "Gemini Preview Models");
+    assert_eq!(group.extra[0].label, "daily");
+    assert_eq!(group.extra[0].remaining, 0.75);
+}
+
+#[test]
+fn drops_quota_groups_without_reported_windows() {
+    for raw in [
+        r#"{"displayName":"Claude and GPT models"}"#,
+        r#"{"displayName":"Claude and GPT models","buckets":null}"#,
+        r#"{"displayName":"Claude and GPT models","buckets":[]}"#,
+        r#"{"displayName":"Claude and GPT models","buckets":[{}]}"#,
+    ] {
+        assert!(parse_group(serde_json::from_str(raw).unwrap()).is_none());
+    }
 }
 
 #[test]

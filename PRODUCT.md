@@ -57,8 +57,9 @@ token refresh; OrbitSwitch only redeems refresh tokens for inactive stored accou
 require re-authentication.
 
 The current account leads its tab. *Most left* compares fresh accounts with matching window shapes in
-that tab: Claude's tightest window decides on Antigravity (Gemini breaks ties), and the primary shared
-coding pool decides on Codex and Claude.
+that tab. On Antigravity, the tightest reported Claude window decides, with Gemini as the tie-breaker
+and the deciding pool for Gemini-only accounts. On Codex and Claude, the primary shared coding pool
+decides.
 
 ## App updates
 

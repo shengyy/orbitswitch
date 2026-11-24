@@ -9,8 +9,8 @@ internals live in [architecture.md](architecture.md); read-only verification com
 | Signed-in credential storage | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/live.rs` |
 | Credential bundle format | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/credential.rs` |
 | OAuth client and scopes | 2.19.1–2.26.0, macOS 27 | `antigravity/oauth_client.rs`, `google/oauth.rs` |
-| Installed version in `app.asar` | 2.23.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/version.rs` |
-| Quota and plan endpoints | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `google/cloudcode.rs` |
+| Installed version in `app.asar` | 2.23.1–2.26.0, 2.32.2 and 2.34.0, macOS 27 | `antigravity/version.rs` |
+| Quota and plan endpoints | 2.19.1–2.26.0, 2.32.2 and 2.34.0, macOS 27 | `google/cloudcode.rs` |
 | Processes holding the credential | 2.19.1–2.26.0, macOS 27 | `antigravity/process.rs` |
 | Windows equivalents | **not verified** | same modules |
 
@@ -71,10 +71,11 @@ Base URL: `https://daily-cloudcode-pa.googleapis.com/v1internal` (`POST` with be
 - **`:retrieveUserQuotaSummary`** (`{}`): returns `groups[]` with `displayName`, `description`
   (`Models within this group: …`) and `buckets[]` (`window`: `5h` or `weekly`, `remainingFraction`,
   `resetTime`). Proto3 JSON omits `0`, so a bucket without `remainingFraction` is exhausted (`0.0`).
-  A dedicated `Gemini 4 Argon` group contains the shared `gemini-argon-wtu-weekly` bucket. Render
-  an Argon row when the summary includes that group. Argon can also appear in the reported model
-  list of the shared Gemini group. Eligibility follows the
-  [Antigravity model availability table](https://antigravity.google/docs/models#reasoning-model).
+  The listed models in each group share that group's quota. `Gemini Models` and `Claude and GPT
+  models` are the shared pools used for account recommendations. OrbitSwitch shows groups with at
+  least one reported quota window. Other groups retain their reported name and windows. See
+  [Antigravity plans](https://antigravity.google/docs/plans#baseline-quota) for model eligibility
+  and shared quota by tier.
 - **`:loadCodeAssist`** (`{"metadata":{"ideType":"ANTIGRAVITY"}}`): returns `paidTier` and
   `currentTier`. `paidTier` takes precedence (`ultra` → Ultra, `pro` → Pro, `free-tier` or absent →
   Free). Plan and quota responses are handled independently so an expired subscription updates to

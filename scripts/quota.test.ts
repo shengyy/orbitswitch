@@ -82,20 +82,28 @@ describe("account recommendations", () => {
       other.quota.groups[0].fiveHour.durationMinutes = 60;
     expect(bestAccountId([account("active", 0), other], "active")).toBeNull();
   });
-  test("an Argon week does not affect Antigravity account recommendations", () => {
+  test("Gemini-only recommendations compare accounts with the same reported pools", () => {
     const active = account("active", 0.1, "antigravity");
     const other = account("other", 0.8, "antigravity");
-    if (active.quota.status === "ready") {
+    const withClaude = account("with-claude", 1, "antigravity");
+    if (
+      active.quota.status === "ready" &&
+      other.quota.status === "ready" &&
+      withClaude.quota.status === "ready"
+    ) {
+      active.quota.groups[0].key = "gemini";
+      other.quota.groups[0].key = "gemini";
+      withClaude.quota.groups.push(other.quota.groups[0]);
       active.quota.groups.push({
-        key: "argon",
-        label: "Argon",
+        key: "other",
+        label: "Gemini Preview Models",
         models: [],
         fiveHour: null,
         weekly: { remaining: 1, resetAt: null, label: "weekly", durationMinutes: 10080 },
         extra: [],
       });
     }
-    expect(bestAccountId([active, other], active.id)).toBe(other.id);
+    expect(bestAccountId([active, withClaude, other], active.id)).toBe(other.id);
   });
   test("a fresh compatible account with more remaining share is recommended", () => {
     expect(bestAccountId([account("active", 0), account("other", 0.8)], "active")).toBe("other");
