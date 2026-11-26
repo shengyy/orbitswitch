@@ -30,7 +30,14 @@ pub fn create(app: &AppHandle) -> tauri::Result<()> {
             _ => {}
         })
         .on_tray_icon_event(|tray, event| {
-            tauri_plugin_positioner::on_tray_event(tray.app_handle(), &event);
+            #[cfg(target_os = "macos")]
+            if let TrayIconEvent::Click { rect, .. }
+            | TrayIconEvent::Enter { rect, .. }
+            | TrayIconEvent::Move { rect, .. }
+            | TrayIconEvent::Leave { rect, .. } = &event
+            {
+                shell::remember_tray_rect(tray.app_handle(), *rect);
+            }
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
