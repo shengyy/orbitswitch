@@ -24,6 +24,67 @@ const REOPEN_GUARD: Duration = Duration::from_millis(300);
 #[derive(Default)]
 pub struct ShellState {
     hidden_at: Mutex<Option<Instant>>,
+    /// The menu bar icon's last reported rect, in the physical pixels of the
+    /// screen it sits on.
+    #[cfg(target_os = "macos")]
+    tray_rect: Mutex<Option<tauri::Rect>>,
+}
+
+#[cfg(target_os = "macos")]
+pub fn remember_tray_rect(app: &AppHandle, rect: tauri::Rect) {
+    *app.state::<ShellState>()
+        .tray_rect
+        .lock()
+        .expect("shell state poisoned") = Some(rect);
+}
+
+/// Places the popover centered under the menu bar icon, inside the icon's screen.
+///
+/// The icon rect arrives in the physical pixels of the icon's own screen, while
+/// physical window positions are interpreted with the scale of whichever screen
+/// the window last sat on, so with mixed-scale displays the two disagree and the
+/// window lands off screen. Working in logical points avoids that.
+#[cfg(target_os = "macos")]
+fn anchor_to_tray(window: &WebviewWindow) {
+    let Some(rect) = *window
+        .state::<ShellState>()
+        .tray_rect
+        .lock()
+        .expect("shell state poisoned")
+    else {
+        return;
+    };
+    let icon_position = rect.position.to_physical::<f64>(1.0);
+    let icon_size = rect.size.to_physical::<f64>(1.0);
+    let Ok(monitors) = window.available_monitors() else {
+        return;
+    };
+    let screen = monitors.iter().find_map(|monitor| {
+        let scale = monitor.scale_factor();
+        let origin = monitor.position().to_logical::<f64>(scale);
+        let size = monitor.size().to_logical::<f64>(scale);
+        let (x, y) = (icon_position.x / scale, icon_position.y / scale);
+        (x >= origin.x && x < origin.x + size.width && y >= origin.y && y < origin.y + size.height)
+            .then_some((scale, origin, size))
+    });
+    let Some((scale, origin, size)) = screen else {
+        return;
+    };
+    let Ok(window_size) = window.outer_size() else {
+        return;
+    };
+    let window_size = window_size.to_logical::<f64>(window.scale_factor().unwrap_or(scale));
+    let x = (icon_position.x + icon_size.width / 2.0) / scale - window_size.width / 2.0;
+    let y = (icon_position.y + icon_size.height) / scale;
+    let x = x.clamp(
+        origin.x,
+        (origin.x + size.width - window_size.width).max(origin.x),
+    );
+    let y = y.clamp(
+        origin.y,
+        (origin.y + size.height - window_size.height).max(origin.y),
+    );
+    let _ = window.set_position(tauri::LogicalPosition::new(x, y));
 }
 
 pub fn create(app: &AppHandle) -> tauri::Result<WebviewWindow> {
@@ -101,10 +162,7 @@ pub fn show(app: &AppHandle) {
         return;
     };
     #[cfg(target_os = "macos")]
-    {
-        use tauri_plugin_positioner::{Position, WindowExt};
-        let _ = window.move_window_constrained(Position::TrayBottomCenter);
-    }
+    anchor_to_tray(&window);
     let _ = window.show();
     let _ = window.unminimize();
     let _ = window.set_focus();
@@ -139,14 +197,13 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
 /// Fits the macOS popover to its content and keeps it anchored to the icon.
 #[cfg(target_os = "macos")]
 pub fn resize(app: &AppHandle, height: f64) {
-    use tauri_plugin_positioner::{Position, WindowExt};
     if let Some(window) = app.get_webview_window(LABEL) {
         let _ = window.set_size(tauri::LogicalSize::new(
             PANEL_WIDTH,
             height.clamp(200.0, 720.0),
         ));
         if window.is_visible().unwrap_or(false) {
-            let _ = window.move_window_constrained(Position::TrayBottomCenter);
+            anchor_to_tray(&window);
         }
     }
 }

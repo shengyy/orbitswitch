@@ -6,6 +6,11 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Open the macOS popover under the menu bar icon when displays use different scaling; it could
+  previously open off screen and appear not to open at all.
+
 ## [0.3.1] - 2026-11-24
 
 ### Removed

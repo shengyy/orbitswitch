@@ -41,7 +41,6 @@ pub fn run() {
                 .max_file_size(1_000_000)
                 .build(),
         )
-        .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
