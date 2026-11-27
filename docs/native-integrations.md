@@ -14,9 +14,10 @@ live in [antigravity-integration.md](antigravity-integration.md); verification s
 | [claude-swap](https://github.com/realiti4/claude-swap) | CLI keychain/file credentials, `.claude.json` `oauthAccount` and active-client refresh ownership |
 | [CodexBar](https://github.com/steipete/CodexBar) | Usage/profile schemas, window durations, model scopes and stale-data handling |
 | [Claude-Code-Desktop-Switcher](https://github.com/PriyanshuGeTRekT/Claude-Code-Desktop-Switcher) | Independent Electron session storage in Claude Desktop |
+| [Mimir's Claude Desktop integration](https://github.com/erayendes/mimir/blob/8f74e8163186e1f78936e20d1fca72edb44265db/Sources/Mimir/ClaudeDesktopSession.swift) | Desktop sign-in as a source of organization subscription limits |
 
-Read-only macOS probes verified Codex CLI 0.164.0, Codex desktop 26.1021.31345 (`com.openai.codex`),
-Claude Code 2.1.310 and Claude Desktop 3.6556.2 (`com.anthropic.claudefordesktop`).
+The macOS bundle identifiers are `com.openai.codex` and `com.anthropic.claudefordesktop`.
+See [installed-client verification](status.md#installed-client-verification-macos) for tested versions.
 
 ## Isolated CLI login
 
@@ -88,6 +89,9 @@ Claude Code 2.1.310 and Claude Desktop 3.6556.2 (`com.anthropic.claudefordesktop
 - **Profile and usage**: `GET https://api.anthropic.com/api/oauth/profile` and `/usage` with bearer
   token and `anthropic-beta: oauth-2025-04-20`. `remaining = 1 - utilization / 100`. Active
   `weekly_scoped` limits take precedence over legacy `seven_day_sonnet` / `seven_day_opus` fields.
+- When the access token expires or the profile returns HTTP 401, passive detection can recognize
+  a previously saved CLI sign-in. Both the account and organization in `oauthAccount` and the local
+  grant must match the saved session. Import and credential adoption still require a fresh profile.
 - **Token renewal**: inactive accounts refresh via `POST https://platform.claude.com/v1/oauth/token`
   with public client `9d1c250a-e61b-44d9-88ed-5944d1962f5e` and persist rotated refresh tokens
   immediately.
@@ -102,8 +106,14 @@ Claude Desktop uses a separate Electron session in `~/Library/Application Suppor
   `lastKnownAccountUuid` and `oauth:tokenCache*` from `config.json`.
 - **Verification**: decrypts cookies in Rust (`v10` via keychain `Claude Safe Storage` / `Claude Key`
   on macOS; DPAPI / `v10` / `v11` via `Local State` on Windows; `v20` app-bound encryption is
-  rejected), checks `lastKnownAccountUuid` and `lastActiveOrg`, and verifies server-side identity via
-  `GET https://claude.ai/api/bootstrap`.
+  rejected), checks `lastKnownAccountUuid`, and verifies the account via `GET https://claude.ai/api/bootstrap`.
+  The selected `lastActiveOrg` must agree with the saved organization and its membership when the
+  response lists organizations. Without a selected organization, bootstrap must list the saved
+  organization as the only membership.
+- If the saved CLI access token expires or cannot authorize a usage read, the quota refresh can
+  use the current desktop sign-in. It verifies the account and organization, then uses the same
+  session for `GET https://claude.ai/api/organizations/{org_uuid}/usage`. Both usage endpoints feed
+  the same quota-window parser. The CLI can be closed throughout.
 - **Switch transaction**: stops running client writers first, aborts on SQLite cookie-schema drift
   before deleting rows, clears `bootSideSessions` and `bootSidebarPlaceholder` UI caches, verifies
   readback, and restores both CLI and Desktop state if any step fails.
