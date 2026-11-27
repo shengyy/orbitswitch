@@ -6,8 +6,8 @@ internals live in [architecture.md](architecture.md); read-only verification com
 
 | Contract | Verified on | Owner module |
 |---|---|---|
-| Signed-in credential storage | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/live.rs` |
-| Credential bundle format | 2.19.1–2.26.0 and 2.32.2, macOS 27 | `antigravity/credential.rs` |
+| Signed-in credential storage | 2.19.1–2.26.0, 2.32.2 and 2.35.2, macOS 27 | `antigravity/live.rs` |
+| Credential bundle format | 2.19.1–2.26.0, 2.32.2 and 2.35.2, macOS 27 | `antigravity/credential.rs` |
 | OAuth client and scopes | 2.19.1–2.26.0, macOS 27 | `antigravity/oauth_client.rs`, `google/oauth.rs` |
 | Installed version in `app.asar` | 2.23.1–2.26.0, 2.32.2 and 2.34.0, macOS 27 | `antigravity/version.rs` |
 | Quota and plan endpoints | 2.19.1–2.26.0, 2.32.2 and 2.34.0, macOS 27 | `google/cloudcode.rs` |
@@ -44,9 +44,10 @@ fallback. OrbitSwitch reads the keyring first and writes both locations on switc
 
 - `token` matches `golang.org/x/oauth2.Token`; `expiry` uses RFC 3339 with the local offset.
 - `auth_method` is `consumer` for personal Google accounts.
-- `id_token` is optional. OrbitSwitch resolves the account ID and profile from Google UserInfo
-  using the bundle's access token, with usable ID-token claims as a fallback. Unknown fields are
-  preserved on round-trip.
+- `id_token` is optional. On 2.35.2 the bundle can contain `id_token_email` with `id_token` omitted.
+  When usable ID-token claims are absent, OrbitSwitch checks for a unique, exact refresh-token
+  match among saved Antigravity accounts. Unresolved sign-ins use Google UserInfo with the bundle's
+  access token and fall back to usable ID-token claims. Unknown fields are preserved on round-trip.
 
 ## OAuth client
 
@@ -89,5 +90,5 @@ All processes that hold the active credential must exit before rewriting it:
 - Electron helpers and `Contents/Resources/bin/language_server` under the install root
 - `agy` CLI
 
-`~/Library/Application Support/Antigravity/app_storage.json` (`jetski.onboarding.lastLoginUsername`)
-is not modified.
+Antigravity also records the last login username in `app_storage.json`
+(`agy.onboarding.lastLoginUsername` on 2.35.2). OrbitSwitch uses the live credential for identity.
