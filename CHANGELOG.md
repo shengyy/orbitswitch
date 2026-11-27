@@ -6,6 +6,8 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-27
+
 ### Fixed
 
 - Read a saved Claude account's quota from its verified Claude Desktop sign-in when the Claude
