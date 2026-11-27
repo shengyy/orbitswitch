@@ -1,30 +1,35 @@
 //! Opt-in read-only probes. Never refresh tokens, launch/stop clients or write credentials.
-use super::{api, codex_projects, desktop, install, live, storage};
+use super::{api, codex_projects, install, live, storage};
 use crate::provider::Provider;
 
 #[tokio::test]
 #[ignore = "reads the signed-in official clients and their usage endpoints"]
 async fn current_subscription_contracts() {
     let http = reqwest::Client::builder()
+        .user_agent(crate::google::USER_AGENT)
         .timeout(std::time::Duration::from_secs(20))
         .redirect(reqwest::redirect::Policy::none())
         .build()
         .unwrap();
     for provider in [Provider::Codex, Provider::Claude] {
-        let credential = live::locate(provider)
-            .unwrap()
+        let location = live::locate(provider).unwrap();
+        let credential = location
             .read()
             .unwrap()
             .expect("sign in with the official CLI first");
-        let profile = api::profile(&http, provider, &credential).await.unwrap();
-        api::identity(provider, &credential, &profile).unwrap();
-        let usage = api::usage(&http, provider, &credential).await.unwrap();
-        let groups = api::groups(provider, &usage);
+        let (mut session, _) = super::observe_sign_in(&http, provider, &location, credential)
+            .await
+            .expect("identify the current sign-in");
+        let id = session.id(provider).unwrap();
+        let groups = super::subscription_quota(&http, provider, &id, true, &mut session)
+            .await
+            .expect("read the current subscription")
+            .groups
+            .expect("read current usage");
         assert!(
             !groups.is_empty(),
             "the account should expose at least one rate-limit window"
         );
-        api::verify_usage_identity(provider, &credential, &usage).unwrap();
         println!(
             "{}: identity and {} quota groups verified (read-only)",
             provider.key(),
@@ -41,22 +46,67 @@ async fn current_claude_desktop_binding() {
         .redirect(reqwest::redirect::Policy::none())
         .build()
         .unwrap();
-    let credential = live::locate(Provider::Claude)
-        .unwrap()
-        .read()
-        .unwrap()
-        .expect("CLI login required");
-    let profile = api::profile(&http, Provider::Claude, &credential)
-        .await
-        .unwrap();
-    let (subject, org, _, _) = api::identity(Provider::Claude, &credential, &profile).unwrap();
-    let session = desktop::capture().unwrap().expect("desktop login required");
+    let location = live::locate(Provider::Claude).unwrap();
+    let credential = location.read().unwrap().expect("CLI login required");
+    let (session, oauth_verified) =
+        super::observe_sign_in(&http, Provider::Claude, &location, credential)
+            .await
+            .expect("observe the live CLI account");
     assert!(
-        session.matches(&subject),
+        session.desktop.is_some(),
         "Claude Desktop is not signed into the same account as the CLI"
     );
-    session.verify(&http, &subject, &org).await.unwrap();
-    println!("Claude Desktop and CLI identity match; session verified (read-only)");
+    println!(
+        "Claude Desktop and CLI identity match (read-only). Fresh OAuth profile: {oauth_verified}"
+    );
+}
+
+#[tokio::test]
+#[ignore = "reads Claude Desktop subscription limits for the signed-in saved account"]
+async fn current_claude_desktop_usage() {
+    let provider = Provider::Claude;
+    let location = live::locate(provider).unwrap();
+    let metadata = storage::read_json(location.metadata.as_ref().unwrap())
+        .unwrap()
+        .unwrap();
+    let subject = metadata["oauthAccount"]["accountUuid"].as_str().unwrap();
+    let org = metadata["oauthAccount"]["organizationUuid"]
+        .as_str()
+        .unwrap();
+    let id = format!("claude:{subject}:{org}");
+    let mut saved = super::load(&id).expect("saved account");
+    let cli = location.read().unwrap().expect("CLI login required");
+    let same_access = api::access(provider, &cli)
+        .is_ok_and(|token| api::access(provider, &saved.credential).ok() == Some(token));
+    let has_refresh = cli["claudeAiOauth"]["refreshToken"]
+        .as_str()
+        .is_some_and(|token| !token.is_empty());
+    let http = reqwest::Client::builder()
+        .user_agent(crate::google::USER_AGENT)
+        .timeout(std::time::Duration::from_secs(20))
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+        .unwrap();
+    let expired = api::expires(provider, &saved.credential)
+        .is_some_and(|at| at <= chrono::Utc::now().timestamp());
+    if !expired {
+        // Exercise the fallback on hosts with fresh tokens using only this in-memory copy.
+        saved.credential["claudeAiOauth"]["expiresAt"] = 0.into();
+    }
+    let groups = super::subscription_quota(&http, provider, &id, true, &mut saved)
+        .await
+        .expect("subscription quota")
+        .groups
+        .expect("desktop usage");
+    let five_hour = groups.iter().any(|group| group.five_hour.is_some());
+    let weekly = groups.iter().any(|group| group.weekly.is_some());
+    assert!(
+        five_hour || weekly,
+        "expected a reported subscription usage window"
+    );
+    println!(
+        "Saved access token already expired: {expired}. CLI access matches saved: {same_access}. CLI refresh credential present: {has_refresh}. Desktop windows: five-hour={five_hour}, weekly={weekly}"
+    );
 }
 
 #[test]

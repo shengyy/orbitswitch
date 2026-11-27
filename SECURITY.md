@@ -47,12 +47,14 @@ and [docs/native-integrations.md](docs/native-integrations.md).
 - OpenAI: official CLI/browser sign-in, `auth.openai.com` for inactive token refresh,
   `chatgpt.com/backend-api/wham/usage` for quota and workspace verification.
 - Anthropic: official CLI/browser sign-in, `platform.claude.com/v1/oauth/token` for inactive refresh,
-  `api.anthropic.com/api/oauth/profile` and `/usage`, and `claude.ai/api/bootstrap` for paired
-  desktop session verification.
+  and `api.anthropic.com/api/oauth/profile` and `/usage` for CLI credentials. Desktop sign-in cookies
+  go to `claude.ai/api/bootstrap` to verify the account and workspace, then to
+  `claude.ai/api/organizations/{org_uuid}/usage` when that session supplies quota.
 - GitHub Releases: update metadata and confirmed installer downloads, verified against the embedded
   updater public key and signed version.
 
-The shared HTTP client refuses redirects. The frontend receives only metadata and quota snapshots.
+Quota requests use the shared HTTP client, which honors environment and system proxy settings and
+refuses redirects. The frontend receives only metadata and quota snapshots.
 Antigravity's OAuth client secret is read from the local installation at runtime and never stored in
 this repository.
 

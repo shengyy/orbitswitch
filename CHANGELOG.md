@@ -6,6 +6,12 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+### Fixed
+
+- Read a saved Claude account's quota from its verified Claude Desktop sign-in when the Claude
+  Code access token expires or is rejected. The current-account badge stays visible when the saved
+  CLI sign-in and the desktop account and workspace match.
+
 ## [0.3.2] - 2026-11-27
 
 ### Fixed

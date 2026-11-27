@@ -1,5 +1,6 @@
 //! Shared orchestration for Codex and Claude; credentials never enter snapshots.
 pub mod api;
+mod claude;
 mod codex_projects;
 pub mod desktop;
 pub mod install;
@@ -10,6 +11,7 @@ pub mod storage;
 mod transaction;
 use crate::{
     error::{Error, Result},
+    google::cloudcode::{Plan, QuotaGroup},
     model::{Operation, QuotaState, SwitchStep},
     provider::Provider,
     registry::{self, Account},
@@ -82,26 +84,62 @@ async fn read(
     };
     api::access(provider, &credential)?;
     let profile = api::profile(&orbit.http, provider, &credential).await?;
+    with_live_desktop(&orbit.http, provider, credential, profile)
+        .await
+        .map(Some)
+}
+async fn with_live_desktop(
+    http: &reqwest::Client,
+    provider: Provider,
+    credential: Value,
+    profile: Value,
+) -> Result<Session> {
     let (subject, org, _, _) = api::identity(provider, &credential, &profile)?;
-    let desktop = if provider == Provider::Claude {
-        match desktop::capture()? {
-            Some(session) if session.matches(&subject) => {
-                if session.verify(&orbit.http, &subject, &org).await.is_ok() {
-                    Some(session)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
+    let desktop = if provider == Provider::Claude
+        && let Some(session) = desktop::capture()?
+        && session.verify(http, &subject, &org).await.is_ok()
+    {
+        Some(session)
     } else {
         None
     };
-    Ok(Some(Session {
+    Ok(Session {
         credential,
         profile,
         desktop,
-    }))
+    })
+}
+/// A recognized, expired CLI grant can identify the current card. Only a
+/// successful OAuth profile lookup can enroll or replace a saved credential.
+async fn observe_sign_in(
+    http: &reqwest::Client,
+    provider: Provider,
+    location: &live::Location,
+    credential: Value,
+) -> Result<(Session, bool)> {
+    api::access(provider, &credential)?;
+    let profile = if provider == Provider::Claude
+        && api::expires(provider, &credential).is_some_and(|at| at <= Utc::now().timestamp())
+    {
+        Err(Error::LiveTokenExpired)
+    } else {
+        api::profile(http, provider, &credential).await
+    };
+    let (profile, oauth_verified) = match profile {
+        Err(error @ (Error::LiveTokenExpired | Error::TokenRevoked))
+            if provider == Provider::Claude =>
+        {
+            (
+                claude::saved_cli_profile(location, &credential)?.ok_or(error)?,
+                false,
+            )
+        }
+        result => (result?, true),
+    };
+    Ok((
+        with_live_desktop(http, provider, credential, profile).await?,
+        oauth_verified,
+    ))
 }
 fn save_account(orbit: &Orbit, provider: Provider, session: &Session) -> Result<String> {
     let id = session.id(provider)?;
@@ -163,18 +201,19 @@ pub async fn sync_live(orbit: &Arc<Orbit>, provider: Provider) -> Result<()> {
     if unchanged && provider == Provider::Codex {
         return Ok(());
     }
-    let session = match read(orbit, provider, &location).await {
-        Ok(Some(session)) => session,
-        result => {
-            orbit.update(|s| {
-                s.native_active.insert(provider, None);
-                s.native_aligned.insert(provider, false);
-            });
-            return result.map(|_| ());
-        }
-    };
+    let (session, oauth_verified) =
+        match observe_sign_in(&orbit.http, provider, &location, raw).await {
+            Ok(observed) => observed,
+            Err(error) => {
+                orbit.update(|s| {
+                    s.native_active.insert(provider, None);
+                    s.native_aligned.insert(provider, false);
+                });
+                return Err(error);
+            }
+        };
     let id = session.id(provider)?;
-    let should_adopt = !unchanged || provider == Provider::Claude;
+    let should_adopt = oauth_verified && (!unchanged || provider == Provider::Claude);
     if should_adopt && !orbit.state().registry.ignores_native(provider, &id) {
         save_account(orbit, provider, &session)?;
     }
@@ -184,9 +223,11 @@ pub async fn sync_live(orbit: &Arc<Orbit>, provider: Provider) -> Result<()> {
             provider == Provider::Codex || session.desktop.is_some(),
         );
         s.native_active.insert(provider, Some(id));
-        s.registry.set_native_fingerprint(provider, fp)
-    })?;
-    Ok(())
+        if oauth_verified {
+            s.registry.set_native_fingerprint(provider, fp)?;
+        }
+        Ok(())
+    })
 }
 pub async fn import(
     orbit: &Arc<Orbit>,
@@ -281,68 +322,117 @@ pub async fn remove(orbit: &Arc<Orbit>, id: &str) -> Result<()> {
         s.registry.remove(id)
     })
 }
-pub async fn refresh(orbit: &Arc<Orbit>, provider: Provider, id: &str) {
-    let result = async {
-        let mut session = load(id)?;
-        let active = orbit
-            .state()
-            .native_active
-            .get(&provider)
-            .and_then(|s| s.as_deref())
-            == Some(id);
-        if api::expires(provider, &session.credential)
-            .is_some_and(|at| at <= Utc::now().timestamp() + 60)
-        {
-            if active {
-                return Err(Error::LiveTokenExpired);
-            }
-            // Resolve the current native identity again immediately before consuming an inactive refresh token.
-            // External sign-ins can occur between the scheduler pass and this request.
-            let location = live::locate(provider)?;
-            if let Some(live) = location.read()? {
-                let profile = api::profile(&orbit.http, provider, &live)
-                    .await
-                    .map_err(|_| Error::LiveTokenExpired)?;
-                let (subject, org, _, _) = api::identity(provider, &live, &profile)?;
-                if format!("{}:{subject}:{org}", provider.key()) == id {
-                    return Err(Error::LiveTokenExpired);
-                }
-            }
-            api::renew(&orbit.http, provider, &mut session.credential).await?;
-            if session.id(provider)? != id {
-                return Err(Error::VerifyFailed);
-            }
-            session.save(id)?;
-        }
-        let (profile, usage) = tokio::join!(
-            api::profile(&orbit.http, provider, &session.credential),
-            api::usage(&orbit.http, provider, &session.credential)
-        );
-        let profile = profile.unwrap_or_else(|_| session.profile.clone());
-        let observed = api::identity(provider, &session.credential, &profile)?;
-        let saved = session.identity(provider)?;
-        if observed.0 != saved.0 || observed.1 != saved.1 {
-            return Err(Error::VerifyFailed);
-        }
-        if let Ok(u) = &usage {
-            api::verify_usage_identity(provider, &session.credential, u)?;
-        }
-        let plan = api::plan(provider, &profile, usage.as_ref().ok());
-        orbit.update(|s| {
-            if let Some(plan) = plan
-                && s.registry.get(id).is_some()
-            {
-                let _ = s.registry.set_plan(id, plan);
-            }
-        });
-        usage.map(|u| api::groups(provider, &u))
+struct SubscriptionQuota {
+    plan: Option<Plan>,
+    groups: Result<Vec<QuotaGroup>>,
+}
+
+async fn oauth_quota(
+    http: &reqwest::Client,
+    provider: Provider,
+    session: &Session,
+) -> Result<SubscriptionQuota> {
+    let (profile, usage) = tokio::join!(
+        api::profile(http, provider, &session.credential),
+        api::usage(http, provider, &session.credential)
+    );
+    let profile = profile.as_ref().unwrap_or(&session.profile);
+    let observed = api::identity(provider, &session.credential, profile)?;
+    let saved = session.identity(provider)?;
+    if observed.0 != saved.0 || observed.1 != saved.1 {
+        return Err(Error::VerifyFailed);
     }
-    .await;
+    if let Ok(usage) = &usage {
+        api::verify_usage_identity(provider, &session.credential, usage)?;
+    }
+    Ok(SubscriptionQuota {
+        plan: api::plan(provider, profile, usage.as_ref().ok()),
+        groups: usage.map(|u| api::groups(provider, &u)),
+    })
+}
+
+async fn subscription_quota(
+    http: &reqwest::Client,
+    provider: Provider,
+    id: &str,
+    active: bool,
+    session: &mut Session,
+) -> Result<SubscriptionQuota> {
+    if session.id(provider)? != id {
+        return Err(Error::VerifyFailed);
+    }
+    let expired = api::expires(provider, &session.credential)
+        .is_some_and(|at| at <= Utc::now().timestamp() + 60);
+    let mut quota = if expired {
+        SubscriptionQuota {
+            plan: None,
+            groups: Err(Error::LiveTokenExpired),
+        }
+    } else {
+        oauth_quota(http, provider, session).await?
+    };
+    if !matches!(
+        quota.groups,
+        Err(Error::LiveTokenExpired | Error::TokenRevoked | Error::SubscriptionLoginRequired)
+    ) {
+        return Ok(quota);
+    }
+    if provider == Provider::Claude {
+        match claude::desktop_quota(http, session).await {
+            Ok(Some(groups)) => {
+                quota.groups = Ok(groups);
+                return Ok(quota);
+            }
+            Ok(None) => {}
+            Err(error) => quota.groups = Err(error),
+        }
+    }
+    if !expired || active {
+        return Ok(quota);
+    }
+    // External sign-ins can occur between the scheduler pass and this refresh.
+    // Recheck who owns the grant immediately before renewing an inactive account.
+    if let Some(live) = live::locate(provider)?.read()? {
+        let Ok(profile) = api::profile(http, provider, &live).await else {
+            return Ok(quota);
+        };
+        let (subject, org, _, _) = api::identity(provider, &live, &profile)?;
+        if format!("{}:{subject}:{org}", provider.key()) == id {
+            return Ok(quota);
+        }
+    }
+    api::renew(http, provider, &mut session.credential).await?;
+    if session.id(provider)? != id {
+        return Err(Error::VerifyFailed);
+    }
+    session.save(id)?;
+    oauth_quota(http, provider, session).await
+}
+
+pub async fn refresh(orbit: &Arc<Orbit>, provider: Provider, id: &str) {
+    let active = orbit
+        .state()
+        .native_active
+        .get(&provider)
+        .and_then(|s| s.as_deref())
+        == Some(id);
+    let result = match load(id) {
+        Ok(mut session) => {
+            subscription_quota(&orbit.http, provider, id, active, &mut session).await
+        }
+        Err(error) => Err(error),
+    };
     orbit.update(|s| {
         if s.registry.get(id).is_none() {
             return;
         }
-        match result {
+        let groups = result.and_then(|quota| {
+            if let Some(plan) = quota.plan {
+                let _ = s.registry.set_plan(id, plan);
+            }
+            quota.groups
+        });
+        match groups {
             Ok(groups) => {
                 s.quotas.insert(
                     id.into(),

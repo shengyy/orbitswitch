@@ -185,17 +185,18 @@ impl Session {
         }
         String::from_utf8(plain).map_err(|_| Error::VerifyFailed)
     }
-    pub async fn verify(&self, http: &reqwest::Client, subject: &str, org: &str) -> Result<()> {
-        if !self.matches(subject) {
-            return Err(Error::DesktopSignInRequired);
-        }
+    fn cookie_header(&self, org: &str) -> Result<(reqwest::header::HeaderValue, bool)> {
         let now = chrono::Utc::now().timestamp();
         let expiry = self.columns.iter().position(|s| s == "expires_utc");
         let mut cookies = Vec::new();
+        let mut active_org = false;
         for row in &self.rows {
             let Some(name) = self.field(row, "name") else {
                 continue;
             };
+            if name != "lastActiveOrg" && !name.starts_with("sessionKey") {
+                continue;
+            }
             if let Some(Cell::Integer(at)) = expiry.and_then(|i| row.get(i))
                 && *at > 0
                 && *at / 1_000_000 - 11_644_473_600 <= now
@@ -203,8 +204,11 @@ impl Session {
                 continue;
             }
             let value = self.cookie(row)?;
-            if name == "lastActiveOrg" && value != org {
-                return Err(Error::DesktopSignInRequired);
+            if name == "lastActiveOrg" {
+                if value != org {
+                    return Err(Error::DesktopSignInRequired);
+                }
+                active_org = true;
             }
             if value.contains(['\r', '\n', ';']) {
                 return Err(Error::VerifyFailed);
@@ -214,26 +218,79 @@ impl Session {
         if !cookies.iter().any(|s| s.starts_with("sessionKey=")) {
             return Err(Error::DesktopSignInRequired);
         }
+        let mut header = reqwest::header::HeaderValue::from_str(&cookies.join("; "))
+            .map_err(|_| Error::VerifyFailed)?;
+        header.set_sensitive(true);
+        Ok((header, active_org))
+    }
+    async fn verified_cookies(
+        &self,
+        http: &reqwest::Client,
+        subject: &str,
+        org: &str,
+    ) -> Result<reqwest::header::HeaderValue> {
+        if subject.is_empty() || org.is_empty() || !self.matches(subject) {
+            return Err(Error::DesktopSignInRequired);
+        }
+        let (header, active_org) = self.cookie_header(org)?;
         let response = http
             .get("https://claude.ai/api/bootstrap")
-            .header(reqwest::header::COOKIE, cookies.join("; "))
+            .header(reqwest::header::COOKIE, &header)
+            .send()
+            .await?;
+        if matches!(response.status().as_u16(), 401 | 403) {
+            return Err(Error::DesktopSignInRequired);
+        }
+        if !response.status().is_success() {
+            return Err(Error::Http {
+                endpoint: "claude/desktop-profile",
+                status: response.status().as_u16(),
+            });
+        }
+        verify_identity(&response.json().await?, subject, org, active_org)?;
+        Ok(header)
+    }
+    pub async fn verify(&self, http: &reqwest::Client, subject: &str, org: &str) -> Result<()> {
+        self.verified_cookies(http, subject, org).await.map(|_| ())
+    }
+    pub async fn usage(&self, http: &reqwest::Client, subject: &str, org: &str) -> Result<Value> {
+        let cookies = self.verified_cookies(http, subject, org).await?;
+        let mut url = url::Url::parse("https://claude.ai/api/organizations").expect("static URL");
+        url.path_segments_mut()
+            .expect("HTTPS URL")
+            .extend([org, "usage"]);
+        let response = http
+            .get(url)
+            .header(reqwest::header::COOKIE, cookies)
             .send()
             .await?;
         if !response.status().is_success() {
-            return Err(Error::DesktopSignInRequired);
+            return Err(Error::Http {
+                endpoint: "claude/desktop-usage",
+                status: response.status().as_u16(),
+            });
         }
-        let body: Value = response.json().await?;
-        if body["account"]["uuid"].as_str() != Some(subject) {
-            return Err(Error::VerifyFailed);
-        }
-        if let Some(orgs) = body["organizations"].as_array()
-            && !orgs.iter().any(|o| o["uuid"].as_str() == Some(org))
-        {
-            return Err(Error::VerifyFailed);
-        }
-        Ok(())
+        Ok(response.json().await?)
     }
 }
+
+fn verify_identity(body: &Value, subject: &str, org: &str, active_org: bool) -> Result<()> {
+    if body["account"]["uuid"].as_str() != Some(subject) {
+        return Err(Error::VerifyFailed);
+    }
+    if let Some(orgs) = body["organizations"].as_array() {
+        if !orgs.iter().any(|entry| entry["uuid"].as_str() == Some(org)) {
+            return Err(Error::VerifyFailed);
+        }
+        if active_org || orgs.len() == 1 {
+            return Ok(());
+        }
+    } else if active_org {
+        return Ok(());
+    }
+    Err(Error::DesktopSignInRequired)
+}
+
 #[cfg(target_os = "macos")]
 fn decrypt(bytes: &[u8]) -> Result<Vec<u8>> {
     use cbc::cipher::{BlockDecryptMut, KeyIvInit, block_padding::Pkcs7};
@@ -390,6 +447,51 @@ fn apply_at(dir: &Path, session: &Session) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn desktop_identity_requires_the_account_and_an_unambiguous_organization() {
+        let body = serde_json::json!({"account":{"uuid":"user"},"organizations":[{"uuid":"one"},{"uuid":"two"}]});
+        assert!(verify_identity(&body, "user", "one", true).is_ok());
+        assert!(verify_identity(&body, "other", "one", true).is_err());
+        assert!(verify_identity(&body, "user", "other", true).is_err());
+        assert!(verify_identity(&body, "user", "one", false).is_err());
+        let single =
+            serde_json::json!({"account":{"uuid":"user"},"organizations":[{"uuid":"one"}]});
+        assert!(verify_identity(&single, "user", "one", false).is_ok());
+        let account_only = serde_json::json!({"account":{"uuid":"user"}});
+        assert!(verify_identity(&account_only, "user", "one", false).is_err());
+        assert!(verify_identity(&account_only, "user", "one", true).is_ok());
+    }
+
+    #[test]
+    fn desktop_requests_use_only_current_sign_in_cookies_for_the_expected_org() {
+        let row = |name: &str, value: &str, expiry: i64| {
+            vec![
+                Cell::Text(name.into()),
+                Cell::Text(value.into()),
+                Cell::Integer(expiry),
+            ]
+        };
+        let mut session = Session {
+            columns: vec!["name".into(), "value".into(), "expires_utc".into()],
+            rows: vec![
+                row("sessionKey", "test", 0),
+                row("lastActiveOrg", "one", 0),
+                row("sessionKeyV3", "expired", 1),
+                row("__cf_bm", "unrelated", 0),
+            ],
+            config: serde_json::json!({"lastKnownAccountUuid":"user"}),
+        };
+        let (header, active_org) = session.cookie_header("one").unwrap();
+        assert!(active_org && header.is_sensitive());
+        assert_eq!(
+            header.to_str().unwrap(),
+            "sessionKey=test; lastActiveOrg=one"
+        );
+        assert!(session.cookie_header("two").is_err());
+        session.rows[0] = row("sessionKey", "expired", 1);
+        assert!(session.cookie_header("one").is_err());
+    }
     #[test]
     fn replacing_and_restoring_auth_keeps_other_cookies_and_preferences() {
         let dir = tempfile::tempdir().unwrap();

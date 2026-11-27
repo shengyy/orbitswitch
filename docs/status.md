@@ -49,6 +49,11 @@ Update this page in the same PR whenever verification scope changes.
     matched the CLI account and active organization.
   - End-to-end Codex/Claude account switching, process shutdown/relaunch, token renewal and isolated
     browser enrollment remain **not verified**.
+- **Claude quota with the standalone CLI closed** (Claude Code 2.1.332, Desktop 7.37095.0, macOS 27.2.1):
+  - With the saved CLI access token already expired, the read-only current-account check matched
+    the CLI grant to the saved account and verified the same account and organization in Desktop.
+    The quota refresh returned live five-hour and weekly limits through the desktop session.
+    The installed tray display and this path on Windows remain **not verified**.
 - **Codex local-project recovery** (desktop 26.1103.41825, macOS 27.0.1):
   - Read-only inspection verified account-scoped local-project and chat-membership storage in the
     installed desktop. The recovery planner successfully combined saved-account projects and
