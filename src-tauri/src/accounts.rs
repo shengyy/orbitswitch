@@ -116,9 +116,37 @@ pub async fn sync_live(orbit: &Arc<Orbit>) -> Result<()> {
     let fingerprint = registry::fingerprint(refresh_token);
     let is_new_sign_in = !refresh_token.is_empty()
         && orbit.state().registry.live_fingerprint() != Some(fingerprint.as_str());
-    if !is_new_sign_in && let Some(claims) = bundle.claims() {
-        orbit.update(|state| state.active_id = Some(claims.sub));
+    let claims = bundle.claims();
+    if !is_new_sign_in && let Some(claims) = &claims {
+        orbit.update(|state| state.active_id = Some(claims.sub.clone()));
         return Ok(());
+    }
+    if claims.is_none() && !refresh_token.is_empty() {
+        let account_ids = orbit
+            .state()
+            .registry
+            .accounts()
+            .iter()
+            .filter(|account| account.provider == Provider::Antigravity)
+            .map(|account| account.id.clone())
+            .collect();
+        let token = refresh_token.clone();
+        let matched = tokio::task::spawn_blocking(move || {
+            match_saved_refresh_token(account_ids, &token, vault::get)
+        })
+        .await
+        .map_err(|err| Error::Invalid(err.to_string()))?;
+        match matched {
+            Ok(Some(id)) => {
+                return orbit.update(|state| {
+                    state.registry.set_live_fingerprint(fingerprint)?;
+                    state.active_id = Some(id);
+                    Ok(())
+                });
+            }
+            Ok(None) => {}
+            Err(error) => log::warn!("could not compare saved Antigravity grants: {error}"),
+        }
     }
     let profile = match bundle.profile(&orbit.http).await {
         Ok(profile) => profile,
@@ -141,6 +169,24 @@ pub async fn sync_live(orbit: &Arc<Orbit>) -> Result<()> {
     Ok(())
 }
 
+/// Saved grants are keyed by a previously verified Google account ID.
+pub(crate) fn match_saved_refresh_token(
+    account_ids: Vec<String>,
+    refresh_token: &str,
+    read_token: impl Fn(&str) -> Result<Option<String>>,
+) -> Result<Option<String>> {
+    let mut matched = None;
+    for id in account_ids {
+        if read_token(&id)?.as_deref() == Some(refresh_token) {
+            if matched.is_some() {
+                return Ok(None);
+            }
+            matched = Some(id);
+        }
+    }
+    Ok(matched)
+}
+
 fn account_from(profile: &Profile) -> Account {
     Account {
         provider: Provider::Antigravity,
@@ -151,5 +197,38 @@ fn account_from(profile: &Profile) -> Account {
         picture: profile.picture.clone(),
         plan: None,
         added_at: Utc::now(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn identifies_a_saved_sign_in_by_its_exact_refresh_token() {
+        let ids = || vec!["other".into(), "current".into(), "missing".into()];
+        let read = |id: &str| {
+            Ok(match id {
+                "other" => Some("other-token".to_owned()),
+                "current" => Some("current-token".to_owned()),
+                _ => None,
+            })
+        };
+        assert_eq!(
+            match_saved_refresh_token(ids(), "current-token", read).unwrap(),
+            Some("current".into())
+        );
+        assert_eq!(
+            match_saved_refresh_token(ids(), "new-token", read).unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn refuses_an_ambiguous_refresh_token_match() {
+        let ids = vec!["first".into(), "second".into()];
+        let matched =
+            match_saved_refresh_token(ids, "same-token", |_| Ok(Some("same-token".to_owned())));
+        assert_eq!(matched.unwrap(), None);
     }
 }

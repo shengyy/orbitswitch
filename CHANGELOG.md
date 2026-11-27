@@ -6,6 +6,13 @@ All notable changes to OrbitSwitch are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-27
+
+### Fixed
+
+- Keep the Antigravity current-account badge after the local access token expires when the live
+  credential matches a saved account.
+
 ## [0.3.1] - 2026-11-24
 
 ### Removed

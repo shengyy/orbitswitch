@@ -73,7 +73,7 @@ impl Registry {
         Ok(registry)
     }
 
-    fn read(dir: &Path) -> Result<Registry> {
+    pub(crate) fn read(dir: &Path) -> Result<Registry> {
         let path = dir.join(FILE);
         let file: File = match fs::read(&path) {
             Ok(bytes) => serde_json::from_slice(&bytes)?,

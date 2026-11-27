@@ -31,6 +31,8 @@ Update this page in the same PR whenever verification scope changes.
   - On 2.32.2 (macOS 27.2.1), the identity resolver used Google UserInfo for a live credential
     without usable ID-token claims. The same access token returned the account's plan and quota.
     Switching such a session in the installed app remains **not verified**.
+  - On 2.35.2 (macOS 27.2.1), a read-only probe matched the signed-in account to its saved grant
+    with an expired access token and no ID token. The updated tray panel remains **not verified**.
   - Independent plan and quota handling: an expired Pro account updates to `Free` even when quota
     returns HTTP 403.
   - Native menus, clipboard copy and Open at Login through SMAppService.
